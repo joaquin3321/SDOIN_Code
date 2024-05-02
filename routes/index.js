@@ -31,7 +31,7 @@ const isAdmin = (req, res, next) => {
   router.get("/login", forwardAuthenticated, (req, res) => res.render("login"));
   //This is the landing page of the Admin when He/She going to Log-in
 
-  router.get("/calendar", ensureAuthenticated, async (req, res) => {
+  router.get("/calendar", forwardAuthenticated, ensureAuthenticated, async (req, res) => {
     try {
       const userID = req.user._id; //Unique ID of the user
       const user = await User.findById(userID, "userSchool").populate('userSchool', 'SchoolName');

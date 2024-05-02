@@ -1,0 +1,559 @@
+<script>
+  document.addEventListener("DOMContentLoaded", async function() {
+    const viewButtons = document.querySelectorAll(".view_user");
+    viewButtons.forEach(async function(button) {
+      button.addEventListener("click", async function() {
+        const userID = button.getAttribute("data-id");
+
+        //Passing the ID of the user to enable edit function
+        const EditButton = document.getElementById("EditButton");
+        EditButton.setAttribute("onclick", `EditButton('${userID}')`);
+
+        const UpdateEdit = document.getElementById("UpdateEdit");
+        if (UpdateEdit) {
+          UpdateEdit.setAttribute("onclick", `UpdateEdit('${userID}')`);
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        //Passing the ID of the user to changes password function
+        const changePasswordInput = document.getElementById("changePasswordInput");
+        if (changePasswordInput) {
+          changePasswordInput.setAttribute("onclick", `changePasswordInput('${userID}')`);
+        }
+
+        const UpdatePassword = document.getElementById("UpdatePassword");
+        if (UpdatePassword) {
+          UpdatePassword.setAttribute("onclick", `UpdatePassword('${userID}')`);
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        //Both has Cancel Function
+        const cancelEdit = document.getElementById("cancelEdit");
+        if (cancelEdit) {
+          cancelEdit.setAttribute("onclick", `cancelEdit('${userID}')`);
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        //Passing the ID of the user to enable ADDING/UPDATING/DELETION of the user's Profile
+        const addProfile = document.getElementById("addProfile");
+        if (addProfile) {
+          addProfile.setAttribute("onclick", `addProfile('${userID}')`);
+        }
+
+        const changeProfile = document.getElementById("changeProfile");
+        if (changeProfile) {
+          changeProfile.setAttribute("onclick", `changeProfile('${userID}')`);
+        }
+
+        const removeProfile = document.getElementById("removeProfile");
+        if (removeProfile) {
+          removeProfile.setAttribute("onclick", `removeProfile('${userID}')`);
+        }
+
+        const cancelChanges = document.getElementById("cancelChanges");
+        if (cancelChanges) {
+          cancelChanges.setAttribute("onclick", `cancelChanges('${userID}')`);
+        }
+
+        const updateProfile = document.getElementById("updateProfile");
+        if (updateProfile) {
+          updateProfile.setAttribute("onclick", `updateProfile('${userID}')`);
+        }
+
+        const DeleteUser = document.getElementById("DeleteUser");
+        if (DeleteUser) {
+          DeleteUser.setAttribute("onclick", `DeleteUser('${userID}')`);
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // Show loading spinner
+        document.getElementById("ListLoader").style.display = "block";
+        document.getElementById("DeleteLoader").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/GetUser/${userID}`);
+          const data = await response.json();
+
+          // Check if username is available
+          const username = data.userName || "User"; // Use a default value if username is undefined
+
+          document.getElementById("ListLoader").style.display = "none";
+          document.getElementById("DeleteLoader").style.display = "none";
+
+          // Paste this in the modal with the ID of UserListPassword
+          document.getElementById("UserListPassword").innerHTML = `
+            Input the new password for <b style="color:green;">${username}</b>
+            <hr />
+            <div class="form-group">
+                <label class="control-label fw-bold">Password:</label>
+                <input type="password" id="passwordInput" class="form-control form-control mb-3" name="userPass" oninput="checkPasswordMatch()"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label fw-bold">Confirm Username:</label>
+                <input type="password" id="ConfirmPasswordInput" class="form-control form-control" name="userPass2" oninput="checkPasswordMatch()"/>
+            </div>
+            <span id="passwordMatchMessage" class="mb-3" style="font-size: small; font-weight: bold; "></span>
+            <div class="form-group mb-3">
+                <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="seePassword" onchange="togglePasswordVisibility()" />
+                <label class="form-check-label" for="selectAll">Show Password</label>
+                </div>
+            </div>
+        `;
+          document.getElementById("DeleteUserr").innerHTML = `
+        <div class="text-center" style="font-size:20px;">
+            <b>Are you sure you want to delete this user: <br> <b style="color:red;">${username}</b> ? </br>
+        </div>
+        `;
+        } catch (error) {
+          // Hide loading spinner in case of an error
+          document.getElementById("ListLoader").style.display = "none";
+          document.getElementById("DeleteLoader").style.display = "none";
+          console.error(error);
+        }
+
+      });
+    });
+  });
+
+  // Handles the Updating of User's Information
+  function EditButton(userID) {
+    document.getElementById("nameInput").disabled = false;
+    document.getElementById("positionInput").disabled = false;
+    document.getElementById("usernameInput").disabled = false;
+    document.getElementById("schoolInput").style.display = 'none';
+    document.getElementById("schoolInputContainer").style.display = 'block';
+
+    document.getElementById("schoolInputContainer").innerHTML = `
+    <select class="form-select" aria-label="Default select example" id="userSchool">
+      <option value="">--Select School--</option>
+      <% userSchoolList.forEach(school => { %>
+        <option value="<%= school._id %>"><%= school.SchoolName %></option>
+      <% }); %>
+    </select>
+    <span class="text-danger" style="font-size: small; font-weight: bold;">*It's fine to leave it empty</span>
+    `;
+
+    document.getElementById('modal-footer').innerHTML = `
+        <button type="button" class="btn btn-success" id="UpdateEdit" onclick="UpdateEdit('${userID}')">
+          Update
+        </button>
+        <button type="button" class="btn btn-secondary" id="cancelEdit" onclick="cancelEdit('${userID}')">
+          Cancel
+        </button>
+      `;
+
+  }
+
+  function cancelEdit(userID) {
+    document.getElementById('userCredential').style.display = 'block';
+    document.getElementById('changePassword').style.display = 'none';
+    document.getElementById('modal-footer').innerHTML = `
+      <button type="button" class="btn btn-primary" id="EditButton" onclick="EditButton('${userID}')">
+        Edit Credential
+      </button>
+      <button type="button" class="btn btn-dark" id="changePasswordInput" onclick="changePasswordInput('${userID}')">
+        Change Password
+      </button>
+      `;
+
+    document.getElementById("nameInput").disabled = true;
+    document.getElementById("positionInput").disabled = true;
+    document.getElementById("usernameInput").disabled = true;
+
+    document.getElementById("schoolInputContainer").style.display = 'none';
+    document.getElementById("schoolInput").style.display = 'block';
+  }
+
+  async function UpdateEdit(userID) {
+    const nameInput = document.getElementById("nameInput").value;
+    const positionInput = document.getElementById("positionInput").value;
+    const usernameInput = document.getElementById("usernameInput").value;
+
+    const userSchoolInput = document.getElementById("userSchool").value;
+    const validUserSchoolInput = userSchoolInput ? userSchoolInput : null;
+
+
+    const updateData = {
+      userName: nameInput,
+      userPosition: positionInput,
+      userEmail: usernameInput,
+      userSchool: validUserSchoolInput,
+      // Add other fields you want to update
+    };
+    Swal.fire({
+        title: "Are you sure you want to update your credentials?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+          try {
+            const response = await fetch(`/action/updateUser/${userID}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updateData),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to accept document: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              const responseData = await response.json();
+              console.log(responseData);
+
+              // Handle the response data as needed
+              location.reload();
+            } else {
+              // Handle non-JSON response here if needed
+              console.error("Server response is not in JSON format");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+  }
+
+  // Handles the Change Password Function
+  function changePasswordInput(userID) {
+    document.getElementById('userCredential').style.display = 'none';
+    document.getElementById('changePassword').style.display = 'block';
+
+    document.getElementById('changePassword').innerHTML = `
+      <b class="text-muted">Input Your New Password Here</b>
+      <hr />
+      <div class="form-group">
+        <label class="control-label fw-bold">Password:</label>
+        <input type="password" id="passwordInput" class="form-control form-control mb-3" name="userPass" oninput="checkPasswordMatch()"/>
+      </div>
+      <div class="form-group">
+        <label class="control-label fw-bold">Confirm Username:</label>
+        <input type="password" id="ConfirmPasswordInput" class="form-control form-control" name="userPass2" oninput="checkPasswordMatch()"/>
+      </div>
+      <span id="passwordMatchMessage" class="mb-3" style="font-size: small; font-weight: bold; "></span>
+      <div class="form-group mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="seePassword" onchange="togglePasswordVisibility()" />
+          <label class="form-check-label" for="selectAll">Show Password</label>
+        </div>
+      </div>
+      `;
+
+    document.getElementById('modal-footer').innerHTML = `
+        <button type="button" class="btn btn-success" id="UpdatePassword" onclick="UpdatePassword('${userID}')">
+          Update Password
+        </button>
+        <button type="button" class="btn btn-secondary" id="cancelEdit" onclick="cancelEdit('${userID}')">
+          Cancel
+        </button>
+      `;
+  }
+
+  // Enable to See the password
+  function togglePasswordVisibility() {
+    var checkbox = document.getElementById("seePassword");
+    var passwordInput = document.getElementById("passwordInput");
+    var ConfirmPasswordInput = document.getElementById("ConfirmPasswordInput");
+    var showPassword = checkbox.checked;
+    passwordInput.type = checkbox.checked ? "text" : "password";
+    ConfirmPasswordInput.type = checkbox.checked ? "text" : "password";
+  }
+
+  function checkPasswordMatch() {
+    var password = document.getElementById("passwordInput").value;
+    var confirmPassword = document.getElementById("ConfirmPasswordInput").value;
+    var message = document.getElementById("passwordMatchMessage");
+
+    if (password === confirmPassword) {
+      message.style.color = "green";
+      message.innerHTML = " * Password match!";
+    } else {
+      message.style.color = "red";
+      message.innerHTML = " * Password do not match.";
+    }
+    if (!password && !confirmPassword) {
+      message.style.display = "none"
+    } else {
+      message.style.display = "block"
+    }
+  }
+
+  async function UpdatePassword(userID) {
+    const passwordInput = document.getElementById("passwordInput").value;
+    const ConfirmPasswordInput = document.getElementById("ConfirmPasswordInput").value;
+
+    if (!passwordInput) {
+      Swal.fire({
+        title: "Password is Empty!!",
+        text: "Please fill it up to proceed!",
+        icon: "error"
+      });
+      return;
+    }
+
+    if (!ConfirmPasswordInput) {
+      Swal.fire({
+        title: "Confirm Password is Empty!!",
+        text: "Please fill it up to proceed!",
+        icon: "error"
+      });
+      return;
+    }
+
+    // Check if passwords match
+    if (passwordInput !== ConfirmPasswordInput) {
+      Swal.fire({
+        title: "Your password do not match!!",
+        text: "Make sure your password match!!",
+        icon: "error"
+      });
+      return;
+    }
+
+    const updateData = {
+      userPass: passwordInput,
+      // Add other fields you want to update
+    };
+
+    Swal.fire({
+        title: "Do you want to update the password?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+          try {
+            const response = await fetch(`/action/updateUser/${userID}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updateData),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to accept document: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              const responseData = await response.json();
+              console.log(responseData);
+
+              // Handle the response data as needed
+              location.reload();
+            } else {
+              // Handle non-JSON response here if needed
+              console.error("Server response is not in JSON format");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+
+  }
+
+  //Handles Updating/Adding/Deletion of the User's Profile
+  function addProfile(userID) {
+
+    document.getElementById('inputProfile').style.display = 'block';
+
+    document.getElementById("inputProfile").innerHTML = `
+      <div class="form-group">
+        <label class="control-label fw-bold">Input Picture:</label>
+        <input type="file" id="userProfile" class="form-control form-control mb-3" accept="image/*"/>
+      </div>
+      `
+    document.getElementById("modal-footer-profile").innerHTML = `
+      <button type="button" class="btn btn-success" id="updateProfile" onclick="updateProfile('${userID}')">
+        Update Profile
+      </button>
+      <button type="button" class="btn btn-secondary" id="cancelChanges" onclick="cancelChanges('${userID}')">
+        Cancel Changes
+      </button>
+      `;
+  }
+
+  function changeProfile(userID) {
+
+    document.getElementById('inputProfile').style.display = 'block';
+
+    document.getElementById("inputProfile").innerHTML = `
+      <div class="form-group">
+        <label class="control-label fw-bold">Input Picture:</label>
+        <input type="file" id="userProfile" class="form-control form-control mb-3" accept="image/*"/>
+
+      </div>
+      `
+    document.getElementById("modal-footer-profile").innerHTML = `
+      <button type="button" class="btn btn-success" id="updateProfile" onclick="updateProfile('${userID}')">
+        Update Profile
+      </button>
+      <button type="button" class="btn btn-secondary" id="cancelChanges" onclick="cancelChanges('${userID}')">
+        Cancel Changes
+      </button>
+      `;
+  }
+
+  function cancelChanges(userID) {
+
+    document.getElementById('inputProfile').style.display = 'none';
+
+    document.getElementById("modal-footer-profile").innerHTML = `
+      <% if(user.userProfile === null){ %>
+        <button type="button" class="btn btn-primary" id="addProfile" onclick="addProfile()">
+          Add Profile
+        </button>
+      <% } else{  %>
+        <button type="button" class="btn btn-primary" id="changeProfile" onclick="changeProfile('${userID}')">
+          Change Profile
+        </button>
+        <button type="button" class="btn btn-danger" id="removeProfile" onclick="removeProfile('${userID}')">
+          Remove Profile
+        </button>
+      <% } %>
+      `;
+  }
+
+  async function updateProfile(userID) {
+
+    // Get the file input
+    const fileInput = document.getElementById("userProfile");
+    const file = fileInput.files[0];
+
+    const updateData = new FormData();
+    updateData.append("userProfile", file);
+
+    Swal.fire({
+        title: "Are you sure you want to update your profile?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+          try {
+            const response = await fetch(`/action/updateUser/${userID}`, {
+              method: "PATCH",
+              body: updateData, // Use FormData directly instead of JSON.stringify
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to update document: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              const responseData = await response.json();
+              console.log(responseData);
+
+              // Handle the response data as needed
+              location.reload();
+            } else {
+              // Handle non-JSON response here if needed
+              console.error("Server response is not in JSON format");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+  }
+
+  async function removeProfile(userID) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You're gonna delete your profile picture!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#198754",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!"
+      })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await fetch(`/action/deleteProfile/${userID}`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              // Biodata deleted successfully, you might want to update your UI or take additional actions
+              Swal.fire({
+                title: "Deleted!",
+                text: "Profile Picture has been deleted.",
+                icon: "success"
+              }).then(() => {
+                location.reload();
+              });
+            } else {
+              // Handle error from the server
+              Swal.fire({
+                title: "Error!",
+                text: data.message,
+                icon: "error"
+              });
+            }
+          } catch (error) {
+            // Handle network errors or other exceptions
+            console.error('Error deleting biodata:', error);
+          }
+        }
+      });
+  }
+
+  async function DeleteUser(userID) {
+
+    try {
+      const response = await fetch(`/action/DeleteUser/${userID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+        req.flash("success_msg", "User Deleted Successfully");
+      } else {
+        console.error("Failed to delete document");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+  }
+</script>

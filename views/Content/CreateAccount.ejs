@@ -1,0 +1,126 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>Create Account</title>
+<style>
+  .center {
+    margin: auto;
+    /* border: 1px solid black; */
+    margin-top: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    padding: 60px 30px;
+  }
+</style>
+
+<div class="col-lg-12 userlist center">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" href="/UserList"><i class='bx bxs-user-detail'></i> User List</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <form action="/users/admin/register" id="registerID" method="POST">
+        <div class="row">
+          <h3 class="mt-2 mb-4 control-label fw-bold text-muted" style="text-align: center">
+            Create an Account for Admin and School Head
+          </h3>
+
+          <%- include('../partials/messages.ejs')%>
+          <b class="text-muted">User's Information</b>
+          <hr />
+          <div class="col-md-6 border-right">
+            <div class="form-group">
+              <label for="" class="control-label fw-bold">Name:</label>
+              <input type="text" name="userName" class="form-control form-control mb-3" style="text-transform: capitalize;" required />
+            </div>
+            <div class="form-group mb-3">
+              <label class="control-label fw-bold">School Name:</label>
+              <select class="form-select" aria-label="Default select example" name="userSchool" required>
+                <option disabled selected hidden>--Select School--</option>
+                <% userSchoolList.forEach(school => { %>
+                  <option value="<%= school._id %>"><%= school.SchoolName %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="" class="control-label fw-bold">Position:</label>
+              <input type="text" name="userPosition" class="form-control form-control mb-3" style="text-transform: capitalize;" required placeholder="e.g. Teacher 1"/>
+            </div>
+            <div class="form-group mb-3">
+              <select class="form-select" aria-label="Default select example" name="userType" id="userType" required>
+                <option disabled selected hidden>--User Type--</option>
+                <option value="Admin">Admin</option>
+                <option value="School Head">School Head</option>
+              </select>
+              <span class="text-danger" style="font-size: small; font-weight: bold;">*Only Applicable if you want a new Admin User or School Head</span>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="" class="control-label fw-bold">Username:</label>
+              <input type="email" class="form-control form-control mb-3" name="userEmail" required />
+            </div>
+            <div class="form-group">
+              <label for="" class="control-label fw-bold">Password:</label>
+              <input type="password" class="form-control form-control mb-3" id="userPass.1" name="userPass" oninput="PasswordMatch()" />
+            </div>
+            <div class="form-group">
+              <label for="" class="control-label fw-bold">Confirm Password:</label>
+              <input type="password" class="form-control form-control" id="userPass2.1" name="userPass2" oninput="PasswordMatch()" />
+              <span id="passwordMatchMessage1" class="mb-3" style="font-size: small; font-weight: bold; "></span>
+            </div>
+            <div class="form-group mb-3 mt-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="seePassword1" onchange="PasswordVisibility()" />
+                <label class="form-check-label" for="selectAll">Show Password</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-outline-success" style="margin-right: 5px;">
+            Submit
+          </button>
+          <button class="btn btn-secondary ml-5" type="button" onclick="location.href = '/users/cancel'">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function PasswordVisibility() {
+    var checkbox = document.getElementById("seePassword1");
+    var userPass_1 = document.getElementById("userPass.1");
+    var userPass2_1 = document.getElementById("userPass2.1");
+
+    var showPassword = checkbox.checked;
+
+    userPass_1.type = checkbox.checked ? "text" : "password";
+    userPass2_1.type = checkbox.checked ? "text" : "password";
+  }
+
+  function PasswordMatch() {
+    var userPass_1 = document.getElementById("userPass.1").value;
+    var userPass2_1 = document.getElementById("userPass2.1").value;
+    var message1 = document.getElementById("passwordMatchMessage1");
+
+    if (userPass_1 === userPass2_1) {
+      message1.style.color = "green";
+      message1.innerHTML = "* Password match!";
+    } else {
+      message1.style.color = "red";
+      message1.innerHTML = "* Password do not match.";
+    }
+    if (!userPass_1 && !userPass2_1) {
+      message1.style.display = "none"
+    } else {
+      message1.style.display = "block"
+    }
+  }
+</script>
+
+<%- include('../ui/footer2.ejs') %>

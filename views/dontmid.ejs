@@ -1,0 +1,19 @@
+<script>
+        Swal.fire({
+        title: "Are you sure you want to update your credentials?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+</script>

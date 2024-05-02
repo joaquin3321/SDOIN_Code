@@ -1,0 +1,502 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>Dashboard</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  .styled-table {
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .styled-table thead tr {
+    background-color: #695cfe;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+    padding: 20px 15px;
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 5px solid #009879;
+  }
+
+  .news_list {
+    padding: 60px 30px;
+    margin-top: 10px;
+    margin-bottom: -50px;
+  }
+
+  .news_content {
+    padding: 5px 30px;
+  }
+
+  .newsImg img {
+    width: 200px;
+  }
+
+  .news_Title {
+    font-size: 30px;
+  }
+
+  .news_Content {
+    font-size: 20px;
+  }
+
+  .news_img {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Optional: set a maximum width if needed */
+    max-width: 100%;
+    /* Adjust as needed */
+  }
+
+  .news_img img {
+    /* Remove the fixed width */
+    width: 100%;
+    /* Optional: set a max-width to control the maximum width of the image */
+    max-width: 1000px;
+    /* Adjust as needed */
+    height: auto;
+    /* Maintain aspect ratio */
+  }
+</style>
+
+<% if( user.userType == "Admin"){ %>
+<div class="col-lg-12 news_list">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#news_content"><i class="fa-solid fa-plus"></i> Add News</a>
+      </div>
+    </div>
+    <div class="card-body" style="max-height:550px; overflow-x: auto; overflow-y: auto;">
+      <table class="table-hover styled-table table table-bordered commonTable" id="list">
+        <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+          News List
+        </h3>
+        <%- include('../partials/messages.ejs')%>
+        <thead class="table-info">
+          <tr>
+            <th width="5%" class="text-center">#</th>
+            <th width="22%">News Title</th>
+            <th>News Content</th>
+            <th>News Image</th>
+            <th style="text-align: center;" width="12%">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% news.forEach((news, i) => { %>
+          <tr>
+            <td class="text-center">
+              <b><%= i + 1 %></b>
+            </td>
+            <td>
+              <b class="truncate">
+                <%= news.newsTitle %>
+              </b>
+            </td>
+            <td>
+              <%= news.newsContent %>
+            </td>
+            <td class="text-center">
+              <span class="newsImg">
+                <img src="/public/news/<%= news.newsImage %>" alt="">
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit">
+                <a class="btn btn-outline-success view_news" data-bs-toggle="modal" data-bs-target="#edit_news" data-id="<%= news._id %>">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+              </div>
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
+                <a class="btn btn-outline-danger view_news" data-bs-toggle="modal" data-bs-target="#delete_news" data-id="<%= news._id %>">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% }else { %>
+<div class="news_list"></div>
+<% } %>
+
+<!-- Edit News Modal -->
+<div class="modal fade" id="edit_news" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Edit News</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="EditNewsLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Edit_News">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer-edit">
+        <button type="button" class="btn btn-success" id="EditNews" onclick="EditNews('${userID}')">
+          Edit News
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deletition of the News Modal -->
+<div class="modal fade" id="delete_news" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete News</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="DeleteNewsLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Delete_News">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="DeleteNews" onclick="DeleteNews('${userID}')">
+          Delete News
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Content Modal -->
+<div class="modal fade" id="news_content" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="/users/addNews" method="POST" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">News Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+        </div>
+        <div class="modal-body">
+          <div class="" id="content">
+
+            <div class="form-group">
+              <label class="control-label fw-bold">News Title:</label>
+              <input type="text" name="newsTitle" class="form-control form-control mb-3" placeholder="Title of the News" required />
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">News Content:</label>
+              <textarea name="newsContent" cols="30" rows="4" class="form-control mb-3" placeholder="Details of the news" required></textarea>
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">News Picture:</label>
+              <input type="file" name="newsImage" class="form-control form-control" accept="image/*" required />
+              <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="modal-footer-news">
+          <button type="submit" class="btn btn-success">
+            Add News
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<% news.forEach((news, i) => { %>
+<div class="col-lg-12 news_content">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools" style="font-size: 25px;">
+        News no. <%= i + 1 %> <p style="display: none;">ID: <%= news._id %></p>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="news_Title">
+        News Title: <b class="truncate"><%= news.newsTitle %></b>
+      </div>
+      <div class="news_Content">
+        News Content: <b class="truncate"><%= news.newsContent %></b>
+      </div>
+      <div class="news_Content">
+        News Image:
+      </div>
+      <div class="news_img">
+        <span class="con">
+          <img src="/public/news/<%= news.newsImage %>" alt="">
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+<% }); %>
+
+<!-- <div class="col-lg-12 news_content">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools" style="font-size: 25px;">
+
+      </div>
+    </div>
+    <div class="card-body">
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfAkeQtrbk16Z1RqJgnJc1SE0-HWaQTpzfWKn59uV08qve9EA/viewform?embedded=true" width="1000" height="587" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+    </div>
+  </div>
+</div> -->
+
+
+<!-- FOR REAL TIME UPDATE -->
+<div id="socketTest"></div>
+
+<!-- FOR REAL TIME UPDATE -->
+<script>
+  const socket = io();
+
+  // Initialize with the count from the initial loop
+  let newsCount = "<%= news.length %>";
+
+  socket.on("newNews", (news) => {
+    // Increment the news count
+    newsCount++;
+
+    // Create a new container div for the news item
+    const newNewsContainer = document.createElement("div");
+    newNewsContainer.classList.add("col-lg-12", "news_content");
+
+    // Set the inner HTML for the new news item
+    newNewsContainer.innerHTML = `
+      <div class="card card-outline card-primary">
+        <div class="card-header">
+          <div class="card-tools" style="font-size: 25px;">
+            <i class="fa-regular fa-bell fa-bounce" style="color: #009879;"></i>
+            News no. ${newsCount} <p style="display: none;">ID: ${news._id}</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="news_Title">
+            News Title: <b class="truncate">${news.newsTitle}</b>
+          </div>
+          <div class="news_Content">
+            News Content: <b class="truncate">${news.newsContent}</b>
+          </div>
+          <div class="news_Content">News Image:</div>
+          <div class="news_img">
+            <span class="con">
+              <img src="/public/news/${news.newsImage}" alt="" />
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Append the new news item container to the container with id "socketTest"
+    document.getElementById("socketTest").appendChild(newNewsContainer);
+  });
+</script>
+
+
+<!-- FOR REAL TIME DELETE -->
+<script>
+  document.addEventListener("DOMContentLoaded", async function() {
+    const socket = io("http://localhost:8000");
+
+    // Listen for the newsDeleted event
+    socket.on("newsDeleted", (data) => {
+      console.log("Received newsDeleted event:", data);
+
+      const {
+        newsID
+      } = data;
+
+      // Find and remove the corresponding news item from the user's dashboard
+      const newsItems = document.querySelectorAll('.news_content'); // Assuming each news item has the class 'news_content'
+
+      newsItems.forEach((newsItem) => {
+        const newsItemID = newsItem.querySelector('.card-tools').textContent.match(/ID: (.+)/)[1];
+
+        if (newsItemID === newsID) {
+          console.log("Removing news item:", newsItem);
+          newsItem.remove();
+        }
+      });
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async function() {
+    const viewButtons = document.querySelectorAll(".view_news");
+    viewButtons.forEach(async function(button) {
+      button.addEventListener("click", async function() {
+        const userID = button.getAttribute("data-id");
+
+        //Pass the news ID in the Delete Function
+        const DeleteNews = document.getElementById("DeleteNews");
+        if (DeleteNews) {
+          DeleteNews.setAttribute("onclick", `DeleteNews('${userID}')`);
+        }
+
+        const EditNews = document.getElementById("EditNews");
+        if (EditNews) {
+          EditNews.setAttribute("onclick", `EditNews('${userID}')`);
+        }
+
+        document.getElementById("DeleteNewsLoader").style.display = "block";
+        document.getElementById("EditNewsLoader").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/GetNews/${userID}`);
+          const data = await response.json();
+
+          // Check if username is available
+          const newsTitle = data.newsTitle || "News Title"; // Use a default value if username is undefined
+          const newsContent = data.newsContent || "News Title";
+
+          document.getElementById("DeleteNewsLoader").style.display = "none";
+          document.getElementById("EditNewsLoader").style.display = "none";
+
+          document.getElementById("Edit_News").innerHTML = `
+          <div style="font-size:20px;" class="mb-3"><b>Edit This News: <b style="color:green;"> ${newsTitle}</b></div>
+
+          <div class="form-group">
+              <label class="control-label fw-bold">News Title:</label>
+              <input type="text" id="newsTitle" class="form-control form-control mb-3" placeholder="Title of the News" value="${newsTitle}" required />
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">News Content:</label>
+              <textarea id="newsContent"  cols="30" rows="4" class="form-control mb-3" placeholder="Details of the news" required>${newsContent}</textarea>
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">News Picture:</label>
+              <input type="file" id="newsImage" class="form-control form-control" accept="image/*" />
+              <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span>
+            </div>
+        `;
+
+          document.getElementById("Delete_News").innerHTML = `
+          <div class="text-center" style="font-size:20px;">
+              <b>Are you sure you want to delete this news: <br> <b style="color:red;">${newsTitle}</b> ? </br>
+          </div>
+        `;
+        } catch (error) {
+          // Hide loading spinner in case of an error
+          document.getElementById("DeleteNewsLoader").style.display = "none";
+          document.getElementById("EditNewsLoader").style.display = "none";
+          console.error(error);
+        }
+
+      });
+    });
+  });
+
+  //Handles the Deletion of news
+  async function DeleteNews(userID) {
+    try {
+      const response = await fetch(`/action/DeleteNews/${userID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+        req.flash("success_msg", "News Deleted Successfully");
+      } else {
+        console.error("Failed to delete news");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async function EditNews(userID) {
+    const newsTitleUpdate = document.getElementById("newsTitle").value;
+    const newsContentUpdate = document.getElementById("newsContent").value;
+
+    const newsImage = document.getElementById("newsImage");
+    const imgUpdate = newsImage.files[0];
+
+    const updateData = new FormData();
+    updateData.append("newsTitle", newsTitleUpdate);
+    updateData.append("newsContent", newsContentUpdate);
+
+    if (imgUpdate) {
+      updateData.append("newsImage", imgUpdate);
+    }
+
+    Swal.fire({
+        title: "Are you sure you want to Update this news?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+          try {
+            const response = await fetch(`/action/Edit_News/${userID}`, {
+              method: "PATCH",
+              body: updateData, // Use FormData directly instead of JSON.stringify
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to update document: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              const responseData = await response.json();
+              console.log(responseData);
+
+              // Handle the response data as needed
+              location.reload();
+            } else {
+              // Handle non-JSON response here if needed
+              console.error("Server response is not in JSON format");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+  }
+</script>
+<%- include('../ui/footer2.ejs') %>

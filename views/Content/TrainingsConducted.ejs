@@ -1,0 +1,529 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>Trainings Conducted</title>
+<style>
+  .styled-table {
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .styled-table thead tr {
+    background-color: #695cfe;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+    padding: 10px 15px;
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 5px solid #009879;
+  }
+
+  .conducted {
+    padding: 60px 30px;
+    margin-top: 10px;
+
+  }
+</style>
+<!-- Show Learning Resources -->
+<div class="col-lg-12 conducted">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <% if( user.userType == "Admin"){ %>
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#conducted"><i class="fa-solid fa-plus"></i> Add Trainings Conducted</a>
+        <% } %>
+      </div>
+    </div>
+    <div class="card-body" style="max-height:519px; overflow-x: auto; overflow-y: auto;">
+      <table class="table-hover styled-table table table-bordered commonTable" id="list">
+        <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+          Conducted Trainings List
+        </h3>
+        <%- include('../partials/messages.ejs')%>
+        <thead class="table-info">
+          <tr>
+            <th width="5%" class="text-center">#</th>
+            <th>Title of Activity</th>
+            <th>Output</th>
+            <th>Date Conducted</th>
+            <th>Remarks</th>
+            <th style="text-align: center;" width="17%" id="action">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% conducted.forEach((conducted, i) => { %>
+          <tr>
+            <td class="text-center">
+              <b><%= i + 1 %></b>
+            </td>
+            <td>
+              <b class="truncate"><%= conducted.titleActivity %></b>
+            </td>
+            <td>
+              <%= conducted.output %>
+            </td>
+            <td>
+              <% const formattedDate = new Date(conducted.dateConducted).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+              <%= formattedDate %>
+            </td>
+            <td>
+              <%= conducted.remarks %>
+            </td>
+            <td class="text-center">
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="View More">
+                <a class="btn btn-outline-primary view_conducted" data-bs-toggle="modal" data-bs-target="#view_conducted" data-id="<%= conducted._id %>">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+              </div>
+              <% if( user.userType == "Admin"){ %>
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit Conducted">
+                <a class="btn btn-outline-success view_conducted" data-bs-toggle="modal" data-bs-target="#edit_conducted" data-id="<%= conducted._id %>">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+              </div>
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete Conducted">
+                <a class="btn btn-outline-danger view_conducted" data-bs-toggle="modal" data-bs-target="#delete_conducted" data-id="<%= conducted._id %>">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </div>
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<% if( user.userType !== "Admin"){ %>
+  <script>
+    document.getElementById("action").style.width = "5%"
+  </script>
+<% } %>
+
+<!-- Handles Adding New Conducted Training -->
+<div class="modal fade" id="conducted" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form action="/users/addConducted" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">Conducted Training Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+        </div>
+        <div class="modal-body">
+          <div class="col-lg-12 center">
+            <div class="card card-outline card-primary">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 border-right">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Title of the Activity:</label>
+                      <input type="text" name="titleActivity" class="form-control form-control mb-3" placeholder="Title of the Activity" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Output:</label>
+                      <input type="text" name="output" class="form-control form-control mb-3" placeholder="Output of the Activity" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Date Conducted:</label>
+                      <input type="date" name="dateConducted" class="form-control form-control mb-3" placeholder="When did the Activity happened?" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Budget Allocation:</label>
+                      <input type="number" name="budgetAllocation" class="form-control form-control mb-3" min="1" placeholder="How much is the budget?" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Participants:</label>
+                      <input type="text" name="participants" class="form-control form-control mb-3" placeholder="Who Participate in the Activity?" required />
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Physical Target:</label>
+                      <input type="text" name="physicalTarget" class="form-control form-control mb-3" placeholder="Who is the physical target of the Activity?" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Accomplishment:</label>
+                      <input type="text" name="accomplishment" class="form-control form-control mb-3" placeholder="Accomplishment of the Activity" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Sources of Funds:</label>
+                      <input type="text" name="sourceof_fund" class="form-control form-control mb-3" placeholder="Source of Funds of the Activity" required />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Remarks:</label>
+                      <input type="text" name="remarks" class="form-control form-control mb-3" placeholder="Remarks of the Activity" required />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="modal-footer-news">
+          <button type="submit" class="btn btn-success">
+            Add Conducted
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Show more about the information of the training conducted modal -->
+<div class="modal fade" id="view_conducted" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">View more about the Conducted Training</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="ViewConductedLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="View_Conducted">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Shows the Editable Resources Modal -->
+<div class="modal fade" id="edit_conducted" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Edit Conducted Training</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="EditConductedLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Edit_Conducted">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-success" id="EditConducted" onclick="EditConducted('${conductedID}')">
+          Edit Conducted
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Conducted Modal -->
+<div class="modal fade" id="delete_conducted" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete Conducted Training</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="DeleteConductedLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Delete_Conducted">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="DeleteConducted" onclick="DeleteConducted('${conductedID}')">
+          Delete Conducted
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async function() {
+    const viewButtons = document.querySelectorAll(".view_conducted");
+    viewButtons.forEach(async function(button) {
+      button.addEventListener("click", async function() {
+        const conductedID = button.getAttribute("data-id");
+
+
+        const EditConducted = document.getElementById("EditConducted");
+        EditConducted.setAttribute("onclick", `EditConducted('${conductedID}')`);
+
+        const DeleteConducted = document.getElementById("DeleteConducted");
+        DeleteConducted.setAttribute("onclick", `DeleteConducted('${conductedID}')`);
+
+        document.getElementById("ViewConductedLoader").style.display = "block";
+        document.getElementById("EditConductedLoader").style.display = "block";
+        document.getElementById("DeleteConductedLoader").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/getConducted/${conductedID}`);
+          const data = await response.json();
+
+          const { titleActivity, output, dateConducted,
+          budgetAllocation, participants, physicalTarget,
+          accomplishment, sourceof_fund, remarks } = data;
+
+          const Formated_Date = formatDate(dateConducted);
+          console.log(Formated_Date)
+
+          document.getElementById("ViewConductedLoader").style.display = "none";
+          document.getElementById("EditConductedLoader").style.display = "none";
+          document.getElementById("DeleteConductedLoader").style.display = "none";
+
+          document.getElementById("View_Conducted").innerHTML = `
+          <div style="font-size:20px;" class="mb-2"><b>More Infomation About: <b style="color:#0d6efd;">${titleActivity} </b></div>
+          <div class="col-lg-12 center">
+            <div class="card card-outline card-primary">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 border-right">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Title of the Activity:</label>
+                      <input type="text" id="titleActivity" class="form-control form-control mb-3" placeholder="Title of the Activity" value="${titleActivity}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Output:</label>
+                      <input type="text" id="output" class="form-control form-control mb-3" placeholder="Output of the Activity" value="${output}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Date Conducted:</label>
+                      <input type="text" id="dateConducted" class="form-control form-control mb-3" placeholder="When did it happen" value="${Formated_Date}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Budget Allocation:</label>
+                      <input type="number" id="budgetAllocation" class="form-control form-control mb-3" min="1"  placeholder="How much is the budget?" value="${budgetAllocation}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Participants:</label>
+                      <input type="text" id="participants" class="form-control form-control mb-3" placeholder="Who Participate in the Activity?" value="${participants}" disabled/>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Physical Target:</label>
+                      <input type="text" id="physicalTarget" class="form-control form-control mb-3" placeholder="Who is the target of the Activity?" value="${physicalTarget}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Accomplishment:</label>
+                      <input type="text" id="accomplishment" class="form-control form-control mb-3" placeholder="Accomplishment of the Activity" value="${accomplishment}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Sources of Funds:</label>
+                      <input type="text" id="sourceof_fund" class="form-control form-control mb-3" placeholder="Source of Funds" value="${sourceof_fund}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Remarks:</label>
+                      <input type="text" id="remarks" class="form-control form-control mb-3" placeholder="Remarks" value="${remarks}" disabled/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          `;
+
+          document.getElementById("Edit_Conducted").innerHTML = `
+          <div style="font-size:20px;" class="mb-2"><b>Edit This Conducted Training: <b style="color:green;">${titleActivity} </b></div>
+          <div class="col-lg-12 center">
+            <div class="card card-outline card-primary">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 border-right">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Title of the Activity:</label>
+                      <input type="text" id="titleActivity" class="form-control form-control mb-3" placeholder="Title of the Activity" value="${titleActivity}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Output:</label>
+                      <input type="text" id="output" class="form-control form-control mb-3" placeholder="Output of the Activity" value="${output}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Date Conducted:</label>
+                      <input type="date" id="dateConducted" class="form-control form-control mb-3" placeholder="When did it happen" value="${dateConducted}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Budget Allocation:</label>
+                      <input type="number" id="budgetAllocation" class="form-control form-control mb-3" min="1"  placeholder="How much is the budget?" value="${budgetAllocation}" />
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Participants:</label>
+                      <input type="text" id="participants" class="form-control form-control mb-3" placeholder="Who Participate in the Activity?" value="${participants}"/>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Physical Target:</label>
+                      <input type="text" id="physicalTarget" class="form-control form-control mb-3" placeholder="Who is the target of the Activity?" value="${physicalTarget}"/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Accomplishment:</label>
+                      <input type="text" id="accomplishment" class="form-control form-control mb-3" placeholder="Accomplishment of the Activity" value="${accomplishment}"/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Sources of Funds:</label>
+                      <input type="text" id="sourceof_fund" class="form-control form-control mb-3" placeholder="Source of Funds" value="${sourceof_fund}"/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Remarks:</label>
+                      <input type="text" id="remarks" class="form-control form-control mb-3" placeholder="Remarks" value="${remarks}"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          `;
+
+          document.getElementById("Delete_Conducted").innerHTML = `
+          <div class="text-center" style="font-size:20px;">
+              <b>Are you sure you want to delete this conducted training: <br><b style="color:red;">${titleActivity} </b>?
+          </div>
+        `;
+
+        } catch (error) {
+          document.getElementById("ViewConductedLoader").style.display = "none";
+          document.getElementById("EditConductedLoader").style.display = "none";
+          document.getElementById("DeleteConductedLoader").style.display = "none";
+          console.error(error);
+        }
+      });
+    });
+  });
+
+  function formatDate(date) {
+      const options = {
+        timeZone: "Asia/Manila",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      return new Date(date).toLocaleDateString("en-US", options);
+    }
+
+  async function EditConducted(conductedID) {
+
+    const titleActivityUpdate = document.getElementById("titleActivity").value;
+    const outputUpdate = document.getElementById("output").value;
+    const dateConductedUpdate = document.getElementById("dateConducted").value;
+    const budgetAllocationUpdate = document.getElementById("budgetAllocation").value;
+    const participantsUpdate = document.getElementById("participants").value;
+    const physicalTargetUpdate = document.getElementById("physicalTarget").value;
+    const accomplishmentUpdate = document.getElementById("accomplishment").value;
+    const sourceof_fundUpdate = document.getElementById("sourceof_fund").value;
+    const remarksUpdate = document.getElementById("remarks").value;
+
+
+    const updateData = {
+      titleActivity: titleActivityUpdate,
+      output: outputUpdate,
+      dateConducted: dateConductedUpdate,
+      budgetAllocation: budgetAllocationUpdate,
+      participants: participantsUpdate,
+      physicalTarget: physicalTargetUpdate,
+      accomplishment: accomplishmentUpdate,
+      sourceof_fund: sourceof_fundUpdate,
+      remarks: remarksUpdate,
+    };
+
+    Swal.fire({
+        title: "Are you sure you want to Update this Conducted Training?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+          try {
+            const response = await fetch(`/action/Edit_Conducted/${conductedID}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updateData), // Use FormData directly instead of JSON.stringify
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to update document: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              const responseData = await response.json();
+
+              // Handle the response data as needed
+              location.reload();
+            } else {
+              // Handle non-JSON response here if needed
+              console.error("Server response is not in JSON format");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+  }
+
+  async function DeleteConducted(conductedID) {
+    try {
+      const response = await fetch(`/action/Delete_Conducted/${conductedID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+
+      } else {
+        console.error("Failed to delete news");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+</script>
+
+<%- include('../ui/footer2.ejs') %>

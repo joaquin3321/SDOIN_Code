@@ -1,0 +1,194 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>User's List</title>
+<style>
+  .styled-table {
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .styled-table thead tr {
+    background-color: #695cfe;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+    padding: 20px 15px;
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 5px solid #009879;
+  }
+
+  .userlist {
+    padding: 60px 30px;
+    margin-top: 10px;
+
+  }
+
+  .profile img {
+    height: 60px;
+  }
+</style>
+
+<script>
+  $(document).ready(function() {
+    $("#specificTable").DataTable({
+      order: [0, 'asc'],
+      "pageLength": 5,
+      "lengthMenu": [ [5, 10, 25, 50, -1], [5, 10, 25, 50, "All"] ]
+    });
+  });
+</script>
+
+<div class="col-lg-12 userlist">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" href="/CreateAccount"><i class='bx bx-user-plus'></i> Add New</a>
+
+      </div>
+    </div>
+    <div class="card-body" style="overflow-x: auto; overflow-y: auto;">
+      <table class="table-hover styled-table table table-bordered" id="specificTable">
+        <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+          User's Account List
+        </h3>
+        <%- include('../partials/messages.ejs')%>
+        <thead class="table-info">
+          <tr>
+            <th width="5%" class="text-center">#</th>
+            <th width="5%" class="text-center">Profile</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th class="text-center">User Type</th>
+            <th class="text-center">School</th>
+            <th class="text-center">Position</th>
+            <th style="text-align: center;" width="12%">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% UserList.forEach((user, i) => { %>
+
+          <tr>
+            <td class="text-center">
+              <b><%= i + 1 %></b>
+            </td>
+            <td class="text-center">
+              <% if(user.userProfile === null || user.userProfile === ""){ %>
+              <span class="profile">
+                <img src="/public/img/DefaultProfile.jpg" alt="">
+              </span>
+              <% } else{  %>
+              <span class="profile">
+                <img src="/public/img/<%= user.userProfile %>" alt="">
+              </span>
+              <% } %>
+            </td>
+            <td>
+              <b class="truncate"><%= user.userName %></b>
+            </td>
+            <td>
+              <%= user.userEmail %>
+            </td>
+            <td class="text-center">
+                <%= user.userType %>
+            </td>
+            <td class="text-center">
+                <%= user.userSchool %>
+            </td>
+            <td class="text-center">
+              <%= user.userPosition %>
+            </td>
+            <td class="text-center">
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Change Password">
+                <a class="btn btn-outline-success view_user" data-bs-toggle="modal" data-bs-target="#change_password" data-id="<%= user._id %>">
+                  <i class="fa-solid fa-unlock-keyhole"></i>
+                </a>
+              </div>
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete Account">
+                <a class="btn btn-outline-danger view_user" data-bs-toggle="modal" data-bs-target="#delete_user" data-id="<%= user._id %>">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password of the User Modal -->
+<div class="modal fade" id="change_password" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Change Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="ListLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="UserListPassword">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-success" id="UpdatePassword" onclick="UpdatePassword('${userID}')">
+          Update Password
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deletition of the User Modal -->
+<div class="modal fade" id="delete_user" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="DeleteLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="DeleteUserr">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="DeleteUser" onclick="DeleteUser('${userID}')">
+          Delete User
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../ui/footer2.ejs') %>

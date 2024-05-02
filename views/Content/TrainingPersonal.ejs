@@ -1,0 +1,486 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>Personal Trainings</title>
+<style>
+  .styled-table {
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .styled-table thead tr {
+    background-color: #695cfe;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+    padding: 10px 15px;
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 5px solid #009879;
+  }
+
+  .attended {
+    padding: 60px 30px;
+    margin-top: 10px;
+  }
+
+  .profile img {
+    height: 60px;
+  }
+  hr {
+  border-top: 5px solid #000000; /* You can adjust the color as needed */
+}
+</style>
+<div class="col-lg-12 attended">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#addPersonal_Training"><i class="fa-solid fa-plus"></i> Add Training(s)</a>
+      </div>
+    </div>
+    <div class="card-body" style="overflow-x: auto; overflow-y: auto;">
+      <div id="Personal" class="Personal">
+        <table class="table-hover styled-table table table-bordered commonTable">
+          <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+            Personal Trainings Attended List
+          </h3>
+          <%- include('../partials/messages.ejs')%>
+          <thead class="table-info">
+            <tr>
+              <th width="5%" class="text-center">#</th>
+              <th>Trainings Attended</th>
+              <th>Start/End of Training</th>
+              <th style="text-align: center;" width="25%">Certificate</th>
+              <th style="text-align: center;" width="8%">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% attended.forEach((attended ) => { %>
+            <% attended.credential.forEach((credential, index) => { %>
+            <tr>
+              <td width="5%" class="text-center">
+                <b><%= index + 1%></b>
+              </td>
+              <td>
+                <b><%= credential.trainingTitle ? credential.trainingTitle : "The User Probably Deleted All its training" %></b>
+              </td>
+              <td>
+                <% const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                <% const trainingEnd = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                <%= trainingStart %> / <%= trainingEnd %>
+              </td>
+              <td>
+                <% if (credential.trainingCertificate) { %>
+                <b class="truncate">
+                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
+                    <i class="fa-solid fa-file-pdf"></i> View Certificate File
+                  </a>
+                </b>
+                <% } else { %>
+                <span class="text-muted">No certificate available</span>
+                <% } %>
+              </td>
+              <td style="text-align: center;" width="13%">
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit">
+                  <a class="btn btn-outline-success personal_action" data-bs-toggle="modal" data-bs-target="#Edit_Personal_Attended" data-attended-id="<%= attended._id %>" data-id="<%= credential._id %>">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </a>
+                </div>
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
+                  <a class="btn btn-outline-danger personal_action" data-bs-toggle="modal" data-bs-target="#Delete_Personal_Attended" data-attended-id="<%= attended._id %>" data-id="<%= credential._id %>">
+                    <i class="fa-solid fa-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Personal Training Attended Modal -->
+<div class="modal fade" id="addPersonal_Training" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Training Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <form id="trainingForm" action="/users/addTrainingAttended" method="post" enctype="multipart/form-data">
+          <!-- User Info -->
+          <input type="text" name="attendedID" value="<%= user.attendedID %>" hidden>
+          <input type="text" name="userName" value="<%= user.userName %>" hidden>
+          <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
+          <input type="text" name="userPosition" value="<%= user.userPosition %>" hidden>
+          <input type="text" name="userProfile" value="<%= user.userProfile %>" hidden>
+
+          <!-- Training Credentials -->
+          <div id="credentialContainer">
+            <div class="credentialEntry">
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Title:</label>
+                <input type="text" name="credential[0][trainingTitle]" class="trainingTitle form-control form-control mb-3" placeholder="Tile of the Training" required />
+              </div>
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Certificate:</label>
+                <input type="file" name="credential[0][trainingCertificate]" class="trainingCertificate form-control" accept="application/pdf" required>
+                <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
+              </div>
+              <label class="control-label fw-bold mt-3">Start/End of the Training:</label>
+              <div class="input-group mb-3">
+                <input type="date" class="form-control" name="credential[0][trainingStart]" required>
+                <span class="input-group-text">@</span>
+                <input type="date" class="form-control" name="credential[0][trainingEnd]" required>
+              </div>
+              <hr>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary mb-1 mt-3 form-control" id="addCredential">Additional Training</button>
+          <br>
+          <input type="submit" class="btn btn-success form-control" value="Submit">
+
+        </form>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete Personal Training Attended Modal -->
+<div class="modal fade" id="Delete_Personal_Attended" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete Training Attended</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="Delete_Attended_Loader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Delete_Personal">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="deletePersonalTraining" onclick="deletePersonalTraining('${AttendID}','${PersonalAttendedID}')">
+          Delete Attended
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Personal Training Attended Modal -->
+<div class="modal fade" id="Edit_Personal_Attended" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Edit Training Attended</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="Edit_Attended_Loader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Edit_Personal">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-success" id="editPersonalTraining" onclick="editPersonalTraining('${AttendID}','${PersonalAttendedID}')">
+          Edit Attended
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- For Any Personal Attended Action -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const actionButtons = document.querySelectorAll(".personal_action");
+    actionButtons.forEach(function(button) {
+      button.addEventListener("click", async function() {
+
+        const AttendID = button.getAttribute("data-attended-id");
+        const PersonalAttendedID = button.getAttribute("data-id");
+
+        const deletePersonalTraining = document.getElementById("deletePersonalTraining");
+        if (deletePersonalTraining) {
+          deletePersonalTraining.setAttribute("onclick", `deletePersonalTraining('${AttendID}','${PersonalAttendedID}')`);
+        }
+
+        const editPersonalTraining = document.getElementById("editPersonalTraining");
+        if (editPersonalTraining) {
+          editPersonalTraining.setAttribute("onclick", `editPersonalTraining('${AttendID}','${PersonalAttendedID}')`);
+        }
+
+        document.getElementById("Delete_Attended_Loader").style.display = "block";
+        document.getElementById("Edit_Attended_Loader").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/Get_Personal_Attended/${AttendID}/${PersonalAttendedID}`);
+          const data = await response.json();
+
+          document.getElementById("Delete_Attended_Loader").style.display = "none";
+          document.getElementById("Edit_Attended_Loader").style.display = "none";
+
+          const {
+            trainingTitle,
+            trainingCertificate,
+            trainingStart,
+            trainingEnd
+          } = data;
+
+          document.getElementById("Edit_Personal").innerHTML = `
+          <div class="text-center mb-3" style="font-size:20px;">
+              <b>Are you sure you want to update your training: <b style="color:green;"> ${trainingTitle}</b> ?
+          </div>
+          <div class="credentialEntry">
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Title:</label>
+                <input type="text" id="trainingTitle" class="form-control form-control mb-3" placeholder="Tile of the Training" value="${trainingTitle}" />
+              </div>
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Certificate:</label>
+                <input type="file" id="trainingCertificate" class="form-control" accept="application/pdf">
+                <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
+              </div>
+              <label class="control-label fw-bold mt-3">Start/End of the Training:</label>
+              <div class="input-group mb-3">
+                <input type="date" class="form-control" id="trainingStart" value="${trainingStart}">
+                <span class="input-group-text">@</span>
+                <input type="date" class="form-control" id="trainingEnd" value="${trainingEnd}">
+              </div>
+            </div>
+          `;
+
+          document.getElementById("Delete_Personal").innerHTML = `
+            <div class="text-center" style="font-size:20px;">
+                <b>Are you sure you want to delete your training:  <b style="color:red;"> ${trainingTitle}</b> ?
+            </div>
+          `;
+
+        } catch (error) {
+          document.getElementById("Delete_Attended_Loader").style.display = "none";
+          document.getElementById("Edit_Attended_Loader").style.display = "none";
+        }
+
+      });
+    });
+  });
+
+  async function deletePersonalTraining(AttendID, PersonalAttendedID) {
+    try {
+      const response = await fetch(`/action/Delete_Personal_Attended/${AttendID}/${PersonalAttendedID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+      } else {
+        console.error("Failed to delete document");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function editPersonalTraining(AttendID, PersonalAttendedID) {
+    const trainingTitle_Input = document.getElementById("trainingTitle").value;
+    const fileInput = document.getElementById("trainingCertificate");
+    const file = fileInput.files[0]; // Retrieve the file from the file input element
+    const trainingStartInput = document.getElementById("trainingStart").value;
+    const trainingEndInput = document.getElementById("trainingEnd").value;
+
+    const formData = new FormData();
+    if (file) {
+      formData.append("trainingCertificate", file);
+    }
+    formData.append("trainingTitle", trainingTitle_Input);
+    formData.append("trainingStart", trainingStartInput);
+    formData.append("trainingEnd", trainingEndInput);
+
+    Swal.fire({
+      title: "Are you sure you want to update your profile?",
+      showCancelButton: true,
+      showConfirmButton: true,
+      confirmButtonText: "Yes, update it",
+      confirmButtonColor: "#198754",
+      cancelButtonText: "No, cancel",
+      icon: "question",
+      dangerMode: true,
+    }).then(async (willUpdate) => {
+      if (willUpdate.isConfirmed) {
+        try {
+          const response = await fetch(`/action/Edit_Personal_Attended/${AttendID}/${PersonalAttendedID}`, {
+            method: "PATCH",
+            body: formData, // Pass formData directly as the body
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to accept document: ${response.statusText}`);
+          }
+
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const responseData = await response.json();
+            console.log(responseData);
+
+            // Handle the response data as needed
+            location.reload();
+          } else {
+            // Handle non-JSON response here if needed
+            console.error("Server response is not in JSON format");
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        Swal.fire("Update canceled", "", "info");
+      }
+    });
+
+  }
+</script>
+
+<!-- Handles Adding New Input Training Attended For Personal Only -->
+<script>
+  let credentialCount = 1; // Initialize the count for the next credential
+
+  // Function to add a new credential entry
+  function addNewCredential() {
+      const container = document.getElementById('credentialContainer');
+      const breakEnd = document.createElement('br');
+      const breakLine = document.createElement('hr');
+
+      // Create a new credential entry
+      const newEntry = document.createElement('div');
+      newEntry.className = 'credentialEntry';
+
+      // Create input fields with incremented indices
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.name = `credential[${credentialCount}][trainingTitle]`;
+      titleInput.className = 'trainingTitle form-control form-control mb-3';
+      titleInput.placeholder = 'Title of the Training';
+      titleInput.required = true;
+
+      const certificateInput = document.createElement('input');
+      certificateInput.type = 'file';
+      certificateInput.accept = 'application/pdf';
+      certificateInput.name = `credential[${credentialCount}][trainingCertificate]`;
+      certificateInput.className = 'trainingCertificate form-control';
+      certificateInput.required = true;
+
+      const startDateInput = document.createElement('input');
+      startDateInput.type = 'date';
+      startDateInput.className = 'form-control';
+      startDateInput.name = `credential[${credentialCount}][trainingStart]`;
+      startDateInput.required = true;
+
+      const endDateInput = document.createElement('input');
+      endDateInput.type = 'date';
+      endDateInput.className = 'form-control';
+      endDateInput.name = `credential[${credentialCount}][trainingEnd]`;
+      endDateInput.required = true;
+
+      // Append input fields to the new entry
+      const titleLabel = document.createElement('label');
+      titleLabel.className = 'control-label fw-bold mt-3';
+      titleLabel.appendChild(document.createTextNode(`Training Title: (${credentialCount})`));
+      newEntry.appendChild(titleLabel);
+      newEntry.appendChild(titleInput);
+
+      const certificateLabel = document.createElement('label');
+      certificateLabel.className = 'control-label fw-bold';
+
+      const spanner = document.createElement('span');
+      spanner.style = 'font-size: small; font-weight: bold; color: red;';
+      spanner.appendChild(document.createTextNode('*It only accepts PDF Files '));
+
+      certificateLabel.appendChild(document.createTextNode(`Training Certificate: (${credentialCount})`));
+      newEntry.appendChild(certificateLabel);
+      newEntry.appendChild(certificateInput);
+      newEntry.appendChild(spanner);
+      newEntry.appendChild(breakEnd);
+
+
+      // Append Start/End date inputs
+      const dateLabel = document.createElement('label');
+      dateLabel.className = 'control-label fw-bold mt-3';
+      dateLabel.appendChild(document.createTextNode(`Start/End of the Training: (${credentialCount})`));
+      newEntry.appendChild(dateLabel);
+
+
+      const dateInputGroup = document.createElement('div');
+      dateInputGroup.className = 'input-group mb-3';
+      dateInputGroup.appendChild(startDateInput);
+      dateInputGroup.innerHTML += '<span class="input-group-text">@</span>';
+      dateInputGroup.appendChild(endDateInput);
+      newEntry.appendChild(dateInputGroup);
+
+      // Append a "Remove" button
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'btn btn-danger btn-sm mt-1';
+      removeButton.appendChild(document.createTextNode('Remove'));
+      removeButton.onclick = function () {
+          removeCredential(newEntry);
+      };
+      newEntry.appendChild(removeButton);
+      newEntry.appendChild(breakLine);
+
+
+      // Append the new entry to the container
+      container.appendChild(newEntry);
+
+      // Increment the credential count
+      credentialCount++;
+  }
+
+  // Function to remove a credential entry
+  function removeCredential(entry) {
+      const container = document.getElementById('credentialContainer');
+      container.removeChild(entry);
+      credentialCount--;
+  }
+
+  // Add event listener to the "Add Training" button
+  const addButton = document.getElementById('addCredential');
+  addButton.addEventListener('click', addNewCredential);
+</script>
+
+<%- include('../ui/footer2.ejs') %>

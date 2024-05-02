@@ -1,0 +1,975 @@
+<%- include('../ui/sidebar2.ejs') %>
+<style>
+  .styled-table {
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .styled-table thead tr {
+    background-color: #695cfe;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+    padding: 10px 15px;
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 5px solid #009879;
+  }
+
+  .attended {
+    padding: 60px 30px;
+    margin-top: 10px;
+  }
+
+  .profile img {
+    height: 60px;
+  }
+</style>
+
+<script>
+  $(document).ready(function() {
+    // Initialize DataTable
+    var table = $("#SchoolTable").DataTable({
+      order: [0, 'desc'],
+      pageLength: 5,
+      searching: false,
+      lengthMenu: [
+        [5, 10, 25, 50, -1],
+        [5, 10, 25, 50, "All"]
+      ],
+      columnDefs: [{
+          targets: [0, 1],
+          searchable: false
+        }, // Enable searching for the 4th column (Trainings Attended & Certificate)
+      ],
+    });
+
+    // Custom search function
+    $("#myInput").on("input", function() {
+      var searchTerm = $(this).val().toLowerCase();
+      customSearch(table, searchTerm);
+    });
+
+    $("#notAttendedCheckbox").on("change", function() {
+      $('.dataTables_empty').parent().remove();
+      var noMatchFound = true;
+      // Get the current search term
+      var searchTerm = $('.dataTables_filter input').val().toLowerCase();
+
+      // Check if the checkbox is checked
+      var isCheckboxChecked = this.checked;
+
+      // Perform custom search logic
+      table.rows().every(function() {
+        var data = this.data();
+
+        // Check if the search term is empty
+        var isEmptySearch = searchTerm.trim() === '';
+
+        // Perform case-insensitive search on specific columns
+        var matchFound = isEmptySearch || data[2].toLowerCase().includes(searchTerm) || data[3].toLowerCase().includes(searchTerm) || data[4].toLowerCase().includes(searchTerm);
+
+        // Show/hide rows based on the search result and checkbox state
+        var shouldShowRow = isCheckboxChecked ? !matchFound : true;
+
+        var rowNode = $(this.node());
+        rowNode.toggle(shouldShowRow);
+
+        if (shouldShowRow) {
+          noMatchFound = false;
+        }
+
+      });
+      if (noMatchFound) {
+        var colCount = $("#SchoolTable th").length;
+        // Display a message when no data is available
+        $('#SchoolTable').append('<tr><td valign="top" colspan="' + colCount + '" class="dataTables_empty">No data available in table</td></tr>');
+      } else {
+        $('.dataTables_empty').parent().remove();
+      }
+    });
+  });
+
+  function customSearch(table, searchTerm) {
+    $('.dataTables_empty').parent().remove();
+    var noMatchFound = true;
+
+    table.rows().every(function() {
+      var data = this.data();
+
+      // Check if the search term is empty
+      var isEmptySearch = searchTerm.trim() === '';
+
+      // Split the search term into individual words
+      var searchWords = searchTerm.toLowerCase().split(' ');
+
+      // Check if all words match the columns
+      var matchFound = isEmptySearch || searchWords.every(word =>
+        data[2].toLowerCase().includes(word) ||
+        data[3].toLowerCase().includes(word) ||
+        data[4].toLowerCase().includes(word)
+      );
+
+      // Negate the match result to show rows that do not match the search term
+      var shouldShowRow = matchFound;
+
+      // Show/hide rows based on the search result
+      var rowNode = $(this.node());
+      rowNode.toggle(shouldShowRow);
+
+      if (shouldShowRow) {
+        noMatchFound = false;
+      }
+    });
+
+    if (noMatchFound) {
+      var colCount = $("#SchoolTable th").length;
+      // Display a message when no data is available
+      $('#SchoolTable').append('<tr><td valign="top" colspan="' + colCount + '" class="dataTables_empty">No data available in table</td></tr>');
+    } else {
+      $('.dataTables_empty').parent().remove();
+    }
+  }
+</script>
+
+<div class="col-lg-12 attended">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <% if( user.userType == "Admin"){ %>
+        <style>
+          .ForDivision {
+            display: none;
+          }
+
+          .ForSchool {
+            display: none;
+          }
+
+          .Personal {
+            display: block;
+          }
+        </style>
+        <button type="button" class="btn btn-info" onclick="personalAction()">Personal</button>
+        <button type="button" class="btn btn-success" onclick="divisionAction()">Division</button>
+        <button type="button" class="btn btn-primary" onclick="schoolAction()">School</button>
+        <% } else if( user.userType == "School Head") { %>
+        <style>
+          .ForSchool {
+            display: none;
+          }
+
+          .Personal {
+            display: block;
+          }
+        </style>
+        <button type="button" class="btn btn-info" onclick="personalAction()">Personal</button>
+        <button type="button" class="btn btn-primary" onclick="schoolAction()">School</button>
+        <% } %>
+      </div>
+    </div>
+    <div class="card-body" style="overflow-x: auto; overflow-y: auto;">
+      <% if( user.userType == "Admin" || user.userType == "School Head"){ %>
+
+      <div id="ForSchool" class="ForSchool mb-3">
+        <% if(user.userType == "School Head"){ %>
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary mb-3" data-bs-toggle="modal" data-bs-target="#Add_Training"><i class="fa-solid fa-plus"></i> Add Training for Teachers</a>
+        <% } %>
+        <table class="table-hover styled-table table table-bordered" id="SchoolTable">
+          <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+            Teacher's Trainings Attended List
+          </h3>
+          <%- include('../partials/messages.ejs')%>
+
+          <div id="list_filter" class="dataTables_filter" style="display: flex; justify-content: flex-end;">
+            <input type="search" class="form-control form-control-sm" id="myInput" placeholder="Search Here" aria-controls="list" />
+          </div>
+          <div class="form-check form-switch" style="display: flex; justify-content: flex-end;">
+            <input class="form-check-input" type="checkbox" id="notAttendedCheckbox">
+            <label class="form-check-label" for="notAttendedCheckbox">&nbspDidn't Attend</label>
+          </div>
+
+          <thead class="table-info">
+            <tr>
+              <th width="5%" class="text-center">#</th>
+              <th width="5%" class="text-center">Picture</th>
+              <th>Name</th>
+              <% if( user.userType == "Admin" ){%>
+              <th>School</th>
+              <% } %>
+              <th>Trainings Attended & Certificate</th>
+              <th style="text-align: center;" width="8%">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% let countSameSchool = 0; let countAdmin = 0;
+            attendedSH.forEach((attended, index ) => { %> <% if
+              (attended.userSchool === SameSchool && attended.attendedID !== SchoolHeadID && attended.userSchool !== "Schools Division of Ilocos Norte"){ countSameSchool++; %>
+            <tr>
+              <td width="5%" class="text-center">
+                <b><%= countSameSchool %></b>
+              </td>
+              <td width="5%" class="text-center">
+                <% if(attended.userProfile === null || attended.userProfile === ""){ %>
+                <span class="profile">
+                  <img src="/public/img/DefaultProfile.jpg" alt="">
+                </span>
+                <% } else{  %>
+                <span class="profile">
+                  <img src="/public/img/<%= attended.userProfile %>" alt="">
+                </span>
+                <% } %>
+              </td>
+              <td style="text-align: center;" width="25%">
+                <b><%= attended.userName %></b>
+              </td>
+              <td>
+                <% if (attended.credential.length === 0){%>
+                <span class="text-muted">The User Probably Deleted All its training </span>
+                <% } %>
+
+                <% attended.credential.forEach(credential => { %>
+                <b><%= credential.trainingTitle%></b>
+                <% if (credential.trainingCertificate) { %>
+                <b class="truncate">
+                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
+                    <i class="fa-solid fa-file-pdf"></i> View Certificate File
+                  </a>
+                </b>
+
+                <% } else { %>
+                <b class="truncate">
+                  <span class="form-control btn btn-secondary">No Certificate Available</span>
+                </b>
+                <% } %>
+
+                <% }); %>
+              </td>
+
+              <td style="text-align: center;" width="8%">
+                <% if( user.userType == "School Head"){ %>
+                <% if (attended.credential.length === 0){%>
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
+                  <a class="btn btn-outline-danger schoolhead_action" data-bs-toggle="modal" data-bs-target="#DeleteAttendedSH" data-attended-id="<%= attended._id %>">
+                    <i class="fa-solid fa-trash"></i>
+                  </a>
+                </div>
+                <% } else{ %>
+                <b class="truncate">Not Applicable</b>
+                <% } %>
+                <% }else { %>
+                <b class="truncate">Not Applicable</b>
+                <% } %>
+              </td>
+            </tr>
+
+            <% }if( user.userType == "Admin" ){
+            if(attended.userSchool !== SameSchool && attended.attendedID !== SchoolHeadID){ countAdmin++ %>
+            <tr>
+              <td width="5%" class="text-center">
+                <b><%= countAdmin%></b>
+              </td>
+              <td width="5%" class="text-center">
+                <% if(attended.userProfile === null || attended.userProfile === ""){ %>
+                <span class="profile">
+                  <img src="/public/img/DefaultProfile.jpg" alt="">
+                </span>
+                <% } else{  %>
+                <span class="profile">
+                  <img src="/public/img/<%= attended.userProfile %>" alt="">
+                </span>
+                <% } %>
+              </td>
+              <td style="text-align: center;" width="20%">
+                <b><%= attended.userName %></b>
+              </td>
+              <td style="text-align: center;" width="15%">
+                <b><%= attended.userSchool %></b>
+              </td>
+              <td>
+                <% if (attended.credential.length === 0){%>
+                <span class="text-muted">The User Probably Deleted All its training </span>
+                <% } %>
+
+                <% attended.credential.forEach(credential => { %>
+                <b><%= credential.trainingTitle%></b>
+                <% if (credential.trainingCertificate) { %>
+                <b class="truncate">
+                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
+                    <i class="fa-solid fa-file-pdf"></i> View Certificate File
+                  </a>
+                </b>
+
+                <% } else { %>
+                <b class="truncate">
+                  <span class="form-control btn btn-secondary">No Certificate Available</span>
+                </b>
+                <% } %>
+
+                <% }); %>
+              </td>
+              <td style="text-align: center;" width="8%">
+                <% if( user.userType == "School Head"){ %>
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="View More">
+                  <a class="btn btn-outline-primary view_conducted" data-bs-toggle="modal" data-bs-target="#edit_resources" data-id="">
+                    <i class="fa-solid fa-eye"></i>
+                  </a>
+                </div>
+                <% }else { %>
+                <b class="truncate">Not Applicable</b>
+                <% } %>
+              </td>
+            </tr>
+
+            <%}}%>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <% } %>
+
+      <% if( user.userType == "Admin"){ %>
+
+      <div id="ForDivision" class="ForDivision">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary mb-3" data-bs-toggle="modal" data-bs-target="#Add_Training"><i class="fa-solid fa-plus"></i> Add Trainings</a>
+        <table class="table-hover styled-table table table-bordered" id="DivisionTable">
+          <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+            Division's Trainings Attended List
+          </h3>
+          <%- include('../partials/messages.ejs')%>
+
+          <div id="list_filter" class="dataTables_filter3" style="display: flex; justify-content: flex-end;">
+            <input type="search" class="form-control form-control-sm" id="DivisionInput" placeholder="Search Here" aria-controls="list" >
+          </div>
+          <div class="form-check form-switch" style="display: flex; justify-content: flex-end;">
+            <input class="form-check-input" type="checkbox" id="notAttendedCheckbox2"><label class="form-check-label" for="notAttendedCheckbox2">&nbspDidn't Attend</label>
+          </div>
+
+          <thead class="table-info">
+            <tr>
+              <th width="5%" class="text-center">#</th>
+              <th width="5%" class="text-center">Picture</th>
+              <th>Name</th>
+              <th>Trainings Attended & Certificate</th>
+              <th style="text-align: center;" width="8%">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% let countSameSchool = 0; let countAdmin = 0;
+              attendedSH.forEach((attended, index ) => { %> <% if
+                (attended.userSchool === SameSchool && attended.attendedID !== SchoolHeadID){ countSameSchool++; %>
+            <tr>
+              <td width="5%" class="text-center">
+                <b><%= countSameSchool %></b>
+              </td>
+              <td width="5%" class="text-center">
+                <% if(attended.userProfile === null || attended.userProfile === ""){ %>
+                <span class="profile">
+                  <img src="/public/img/DefaultProfile.jpg" alt="">
+                </span>
+                <% } else{  %>
+                <span class="profile">
+                  <img src="/public/img/<%= attended.userProfile %>" alt="">
+                </span>
+                <% } %>
+              </td>
+              <td style="text-align: center;" width="25%">
+                <b><%= attended.userName %></b>
+              </td>
+              <td>
+                <% if (attended.credential.length === 0){%>
+                <span class="text-muted">The User Probably Deleted All its training </span>
+                <% } %>
+
+                <% attended.credential.forEach(credential => { %>
+                <b><%= credential.trainingTitle%></b>
+                <% if (credential.trainingCertificate) { %>
+                <b class="truncate">
+                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
+                    <i class="fa-solid fa-file-pdf"></i> View Certificate File
+                  </a>
+                </b>
+
+                <% } else { %>
+                <b class="truncate">
+                  <span class="form-control btn btn-secondary">No Certificate Available</span>
+                </b>
+                <% } %>
+
+                <% }); %>
+              </td>
+
+              <td style="text-align: center;" width="8%">
+                <% if( user.userType == "Admin"){ %>
+                <% if (attended.credential.length === 0){%>
+                  <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
+                    <a class="btn btn-outline-danger schoolhead_action" data-bs-toggle="modal" data-bs-target="#DeleteAttendedSH" data-attended-id="<%= attended._id %>">
+                      <i class="fa-solid fa-trash"></i>
+                    </a>
+                  </div>
+                <% } else{ %>
+                  <b class="truncate">Not Applicable</b>
+                <% } %>
+                <% }else { %>
+                  <b class="truncate">Not Applicable</b>
+                <% } %>
+              </td>
+            </tr>
+
+            <% } %>
+
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <% } %>
+
+      <div id="Personal" class="Personal">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPersonal_Training"><i class="fa-solid fa-plus"></i> Add Training(s)</a>
+        <table class="table-hover styled-table table table-bordered commonTable">
+          <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+            Personal Trainings Attended List
+          </h3>
+          <%- include('../partials/messages.ejs')%>
+          <thead class="table-info">
+            <tr>
+              <th width="5%" class="text-center">#</th>
+              <th>Trainings Attended</th>
+              <th style="text-align: center;" width="25%">Certificate</th>
+              <th style="text-align: center;" width="8%">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% attended.forEach((attended ) => { %>
+            <% attended.credential.forEach((credential, index) => { %>
+            <tr>
+              <td width="5%" class="text-center">
+                <b><%= index + 1%></b>
+              </td>
+              <td>
+                <b><%= credential.trainingTitle ? credential.trainingTitle : "The User Probably Deleted All its training" %></b>
+              </td>
+              <td>
+                <% if (credential.trainingCertificate) { %>
+                <b class="truncate">
+                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
+                    <i class="fa-solid fa-file-pdf"></i> View Certificate File
+                  </a>
+                </b>
+                <% } else { %>
+                <span class="text-muted">No certificate available</span>
+                <% } %>
+              </td>
+              <td style="text-align: center;" width="13%">
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit">
+                  <a class="btn btn-outline-success personal_action" data-bs-toggle="modal" data-bs-target="#Edit_Personal_Attended" data-attended-id="<%= attended._id %>" data-id="<%= credential._id %>">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </a>
+                </div>
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
+                  <a class="btn btn-outline-danger personal_action" data-bs-toggle="modal" data-bs-target="#Delete_Personal_Attended" data-attended-id="<%= attended._id %>" data-id="<%= credential._id %>">
+                    <i class="fa-solid fa-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Personal Training Attended Modal -->
+<div class="modal fade" id="addPersonal_Training" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Training Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <form id="trainingForm" action="/users/addAttended" method="post" enctype="multipart/form-data">
+          <!-- User Info -->
+          <input type="text" name="attendedID" value="<%= user.attendedID %>" hidden>
+          <input type="text" name="userName" value="<%= user.userName %>" hidden>
+          <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
+          <input type="text" name="userProfile" value="<%= user.userProfile %>" hidden>
+
+          <!-- Training Credentials -->
+          <div id="credentialContainer">
+            <div class="credentialEntry">
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Title:</label>
+                <input type="text" name="credential[0][trainingTitle]" class="trainingTitle form-control form-control mb-3" placeholder="Tile of the Training" required />
+              </div>
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Certificate:</label>
+                <input type="file" name="credential[0][trainingCertificate]" class="trainingCertificate form-control" accept="application/pdf" required>
+                <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary mb-1 mt-3 form-control" id="addCredential">Additional Training</button>
+          <br>
+          <input type="submit" class="btn btn-success form-control" value="Submit">
+
+        </form>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Teachers Training Attended Modal -->
+<div class="modal fade" id="Add_Training" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Training Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <form id="trainingForm" action="/users/addTeacherAttended" method="post">
+          <!-- User Info -->
+          <!-- <input type="text" name="attendedID" value="<%= user.attendedID %>" hidden> -->
+
+          <!-- <input type="text" name="userSchool" value="<%= attended.userSchool %>" hidden>
+          <input type="text" name="userProfile" value="<%= attended.userProfile %>" hidden> -->
+
+          <label class="control-label fw-bold">Teachers:</label>
+          <div class="form-check">
+            <% TeacherList.forEach((user, index ) => { %> <% if
+              (user.userSchool === SameSchool && user.attendedID !== SchoolHeadID){%>
+            <!-- Each checkbox and associated hidden fields -->
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="attendedID" value="<%= user.attendedID %>" />
+              <label class="form-check-label"><%= user.userName %></label>
+            </div>
+            <% }; %>
+            <% }); %>
+            <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
+          </div>
+          <!-- Training Credentials -->
+          <div id="credentialContainer">
+            <div class="credentialEntry">
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Title:</label>
+                <input type="text" name="credential[0][trainingTitle]" class="trainingTitle form-control form-control mb-3" placeholder="Tile of the Training" required />
+              </div>
+            </div>
+          </div>
+          <input type="submit" class="btn btn-success form-control" value="Submit">
+
+        </form>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete Personal Training Attended Modal -->
+<div class="modal fade" id="Delete_Personal_Attended" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete Training Attended</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="Delete_Attended_Loader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Delete_Personal">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="deletePersonalTraining" onclick="deletePersonalTraining('${AttendID}','${PersonalAttendedID}')">
+          Delete Attended
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Personal Training Attended Modal -->
+<div class="modal fade" id="Edit_Personal_Attended" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Edit Training Attended</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="Edit_Attended_Loader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Edit_Personal">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-success" id="editPersonalTraining" onclick="editPersonalTraining('${AttendID}','${PersonalAttendedID}')">
+          Edit Attended
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Teachers Training Attended Modal School Head Action-->
+<div class="modal fade" id="DeleteAttendedSH" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete Training Attended</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="Delete_Attended_Loader_SH">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Delete_Attended_SH">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="DeleteAttended_SH" onclick="DeleteAttended_SH('${AttendID}')">
+          Delete Attended
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action for School Head -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const actionButtons = document.querySelectorAll(".schoolhead_action");
+    actionButtons.forEach(function(button) {
+      button.addEventListener("click", async function() {
+
+        const AttendID = button.getAttribute("data-attended-id");
+
+        const DeleteAttended_SH = document.getElementById("DeleteAttended_SH");
+        if (DeleteAttended_SH) {
+          DeleteAttended_SH.setAttribute("onclick", `DeleteAttended_SH('${AttendID}')`);
+        }
+
+        document.getElementById("Delete_Attended_Loader_SH").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/Get_Teachers_Attended/${AttendID}`);
+          const data = await response.json();
+
+          document.getElementById("Delete_Attended_Loader_SH").style.display = "none";
+
+          const {
+            userName
+          } = data;
+
+          document.getElementById("Delete_Attended_SH").innerHTML = `
+            <div class="text-center" style="font-size:20px;">
+                <b>Are you sure you want to delete the training of: <b style="color:red;"> ${userName}</b> ?
+            </div>
+          `;
+
+        } catch (error) {
+          document.getElementById("Delete_Attended_Loader_SH").style.display = "none";
+        }
+
+      });
+    });
+  });
+
+  async function DeleteAttended_SH(AttendID) {
+    try {
+      const response = await fetch(`/action/Delete_Teachers_Attended/${AttendID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+      } else {
+        console.error("Failed to delete document");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+</script>
+
+<!-- For Any Personal Attended Action -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const actionButtons = document.querySelectorAll(".personal_action");
+    actionButtons.forEach(function(button) {
+      button.addEventListener("click", async function() {
+
+        const AttendID = button.getAttribute("data-attended-id");
+        const PersonalAttendedID = button.getAttribute("data-id");
+
+        const deletePersonalTraining = document.getElementById("deletePersonalTraining");
+        if (deletePersonalTraining) {
+          deletePersonalTraining.setAttribute("onclick", `deletePersonalTraining('${AttendID}','${PersonalAttendedID}')`);
+        }
+
+        const editPersonalTraining = document.getElementById("editPersonalTraining");
+        if (editPersonalTraining) {
+          editPersonalTraining.setAttribute("onclick", `editPersonalTraining('${AttendID}','${PersonalAttendedID}')`);
+        }
+
+        document.getElementById("Delete_Attended_Loader").style.display = "block";
+        document.getElementById("Edit_Attended_Loader").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/Get_Personal_Attended/${AttendID}/${PersonalAttendedID}`);
+          const data = await response.json();
+
+          document.getElementById("Delete_Attended_Loader").style.display = "none";
+          document.getElementById("Edit_Attended_Loader").style.display = "none";
+
+          const {
+            trainingTitle,
+            trainingCertificate
+          } = data;
+
+          document.getElementById("Edit_Personal").innerHTML = `
+          <div class="text-center mb-3" style="font-size:20px;">
+              <b>Are you sure you want to update your training: <b style="color:green;"> ${trainingTitle}</b> ?
+          </div>
+          <div class="credentialEntry">
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Title:</label>
+                <input type="text" id="trainingTitle" class="form-control form-control mb-3" placeholder="Tile of the Training" value="${trainingTitle}" />
+              </div>
+              <div class="form-group">
+                <label class="control-label fw-bold">Training Certificate:</label>
+                <input type="file" id="trainingCertificate" class="form-control" accept="application/pdf">
+                <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
+              </div>
+            </div>
+          `;
+
+          document.getElementById("Delete_Personal").innerHTML = `
+            <div class="text-center" style="font-size:20px;">
+                <b>Are you sure you want to delete your training:  <b style="color:red;"> ${trainingTitle}</b> ?
+            </div>
+          `;
+
+        } catch (error) {
+          document.getElementById("Delete_Attended_Loader").style.display = "none";
+          document.getElementById("Edit_Attended_Loader").style.display = "none";
+        }
+
+      });
+    });
+  });
+
+  async function deletePersonalTraining(AttendID, PersonalAttendedID) {
+    try {
+      const response = await fetch(`/action/Delete_Personal_Attended/${AttendID}/${PersonalAttendedID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+      } else {
+        console.error("Failed to delete document");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function editPersonalTraining(AttendID, PersonalAttendedID) {
+    const trainingTitle_Input = document.getElementById("trainingTitle").value;
+    const fileInput = document.getElementById("trainingCertificate");
+    const file = fileInput.files[0]; // Retrieve the file from the file input element
+
+    const formData = new FormData();
+    if (file) {
+      formData.append("trainingCertificate", file);
+    }
+    formData.append("trainingTitle", trainingTitle_Input);
+
+    Swal.fire({
+      title: "Are you sure you want to update your profile?",
+      showCancelButton: true,
+      showConfirmButton: true,
+      confirmButtonText: "Yes, update it",
+      confirmButtonColor: "#198754",
+      cancelButtonText: "No, cancel",
+      icon: "question",
+      dangerMode: true,
+    }).then(async (willUpdate) => {
+      if (willUpdate.isConfirmed) {
+        try {
+          const response = await fetch(`/action/Edit_Personal_Attended/${AttendID}/${PersonalAttendedID}`, {
+            method: "PATCH",
+            body: formData, // Pass formData directly as the body
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to accept document: ${response.statusText}`);
+          }
+
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const responseData = await response.json();
+            console.log(responseData);
+
+            // Handle the response data as needed
+            location.reload();
+          } else {
+            // Handle non-JSON response here if needed
+            console.error("Server response is not in JSON format");
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        Swal.fire("Update canceled", "", "info");
+      }
+    });
+
+  }
+</script>
+
+<!-- Handles Adding New Input Training Attended For Personal Only -->
+<script>
+  let credentialCount = 1; // Initialize the count for the next credential
+
+  // Function to add a new credential entry
+  function addNewCredential() {
+    const container = document.getElementById('credentialContainer');
+
+    // Create a new credential entry
+    const newEntry = document.createElement('div');
+    newEntry.className = 'credentialEntry';
+
+    // Create input fields with incremented indices
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.name = `credential[${credentialCount}][trainingTitle]`;
+    titleInput.className = 'trainingTitle form-control form-control mb-3';
+    titleInput.placeholder = 'Title of the Training';
+    titleInput.required = true;
+
+    const certificateInput = document.createElement('input');
+    certificateInput.type = 'file';
+    certificateInput.accept = 'application/pdf';
+    certificateInput.name = `credential[${credentialCount}][trainingCertificate]`;
+    certificateInput.className = 'trainingCertificate form-control';
+    certificateInput.required = true;
+
+    // Append input fields to the new entry
+    const titleLabel = document.createElement('label');
+    titleLabel.className = 'control-label fw-bold mt-3';
+    titleLabel.appendChild(document.createTextNode(`Training Title: (${credentialCount})`));
+    newEntry.appendChild(titleLabel);
+    newEntry.appendChild(titleInput);
+
+    const certificateLabel = document.createElement('label');
+    certificateLabel.className = 'control-label fw-bold';
+
+    const spanner = document.createElement('span');
+    spanner.style = 'font-size: small; font-weight: bold; color: red;';
+    spanner.appendChild(document.createTextNode('*It only accepts PDF Files '));
+
+    certificateLabel.appendChild(document.createTextNode(`Training Certificate: (${credentialCount})`));
+    newEntry.appendChild(certificateLabel);
+    newEntry.appendChild(certificateInput);
+    newEntry.appendChild(spanner);
+
+    // Append a "Remove" button
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn btn-danger btn-sm mt-1';
+    removeButton.appendChild(document.createTextNode('Remove'));
+    removeButton.onclick = function() {
+      removeCredential(newEntry);
+    };
+    newEntry.appendChild(removeButton);
+
+    // Append the new entry to the container
+    container.appendChild(newEntry);
+
+    // Increment the credential count
+    credentialCount++;
+  }
+
+
+  // Function to remove a credential entry
+  function removeCredential(entry) {
+    const container = document.getElementById('credentialContainer');
+    container.removeChild(entry);
+    credentialCount--;
+  }
+
+  // Add event listener to the "Add Training" button
+  const addButton = document.getElementById('addCredential');
+  addButton.addEventListener('click', addNewCredential);
+</script>
+
+<!-- Handles of showing the ForSchool, Personal, and ForDivision -->
+<script>
+  function schoolAction() {
+    document.getElementById("ForSchool").style.display = "block";
+    document.getElementById("Personal").style.display = "none";
+    document.getElementById("ForDivision").style.display = "none";
+  }
+
+  function divisionAction() {
+    document.getElementById("ForSchool").style.display = "none";
+    document.getElementById("ForDivision").style.display = "block";
+    document.getElementById("Personal").style.display = "none";
+  }
+
+  function personalAction() {
+    document.getElementById("ForSchool").style.display = "none";
+    document.getElementById("Personal").style.display = "block";
+    document.getElementById("ForDivision").style.display = "none";
+  }
+</script>
+<%- include('../ui/footer2.ejs') %>

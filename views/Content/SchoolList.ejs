@@ -1,0 +1,328 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>School List</title>
+<style>
+  .styled-table {
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .styled-table thead tr {
+    background-color: #695cfe;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+    padding: 20px 15px;
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 5px solid #009879;
+  }
+
+  .school_list {
+    padding: 60px 30px;
+    margin-top: 10px;
+
+  }
+
+  .profile img {
+    height: 60px;
+  }
+</style>
+
+<script>
+  $(document).ready(function() {
+    $("#specificTable").DataTable({
+      order: [0, 'asc'],
+      "pageLength": 5,
+      "lengthMenu": [
+        [5, 10, 25, 50, -1],
+        [5, 10, 25, 50, "All"]
+      ]
+    });
+  });
+</script>
+
+<div class="col-lg-12 school_list">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#school_list"><i class="fa-solid fa-plus"></i> Add School</a>
+
+      </div>
+    </div>
+    <div class="card-body" style="overflow-x: auto; overflow-y: auto;">
+      <table class="table-hover styled-table table table-bordered" id="specificTable">
+        <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+          User's Account List
+        </h3>
+        <%- include('../partials/messages.ejs')%>
+        <thead class="table-info">
+          <tr>
+            <th width="5%" class="text-center">#</th>
+
+            <th>School Name</th>
+            <th style="text-align: center;" width="12%">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% SchoolList.forEach((school, i) => { %>
+          <tr>
+            <td class="text-center">
+              <b><%= i + 1 %></b>
+            </td>
+            <td>
+              <b class="truncate"><%= school.SchoolName %></b>
+            </td>
+
+            <td class="text-center">
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit">
+                <a class="btn btn-outline-success view_school" data-bs-toggle="modal" data-bs-target="#edit_school" data-id="<%= school._id %>">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+              </div>
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
+                <a class="btn btn-outline-danger view_school" data-bs-toggle="modal" data-bs-target="#delete_school" data-id="<%= school._id %>">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Adding New School Modal -->
+<div class="modal fade" id="school_list" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="/users/addSchool" method="POST">
+        <div class="modal-header"> </div>
+        <div class="modal-body">
+          <div class="" id="content">
+            <div class="form-group">
+              <label class="control-label fw-bold">School Name:</label>
+              <input type="text" name="SchoolName" class="form-control form-control mb-3" placeholder="School Name" required />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="modal-footer-news">
+          <button type="submit" class="btn btn-success">
+            Add School
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit School -->
+<div class="modal fade" id="edit_school" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Edit School</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="ListLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="UpdateSchool">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-success" id="UpdateSchoolButton" onclick="UpdateSchoolButton('${schoolID}')">
+          Update School
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Deletition of the School Modal -->
+<div class="modal fade" id="delete_school" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete School</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="DeleteLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="DeleteSchool">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="DeleteSchoolButton" onclick="DeleteSchoolButton('${schoolID}')">
+          Delete School
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", async function() {
+    const viewButtons = document.querySelectorAll(".view_school");
+    viewButtons.forEach(async function(button) {
+      button.addEventListener("click", async function() {
+        const schoolID = button.getAttribute("data-id");
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        const UpdateSchoolButton = document.getElementById("UpdateSchoolButton");
+        if (UpdateSchoolButton) {
+          UpdateSchoolButton.setAttribute("onclick", `UpdateSchoolButton('${schoolID}')`);
+        }
+
+        const DeleteSchoolButton = document.getElementById("DeleteSchoolButton");
+        if (DeleteSchoolButton) {
+          DeleteSchoolButton.setAttribute("onclick", `DeleteSchoolButton('${schoolID}')`);
+        }
+
+        // Show loading spinner
+        document.getElementById("ListLoader").style.display = "block";
+        document.getElementById("DeleteLoader").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/Get-School/${schoolID}`);
+          const data = await response.json();
+
+          const {
+            SchoolName
+          } = data;
+
+          document.getElementById("ListLoader").style.display = "none";
+          document.getElementById("DeleteLoader").style.display = "none";
+
+          document.getElementById("UpdateSchool").innerHTML = `
+
+          <div class="form-group">
+            <div class="text-center" style="font-size:20px;">
+              <b>Edit this school: <b style="color:green;">${SchoolName}</b> ?
+            </div>
+            <label class="control-label fw-bold">School Name:</label>
+            <input type="text" class="form-control form-control mb-3" id="SchoolName" placeholder="School Name" value="${SchoolName}" />
+          </div>
+          `;
+
+          document.getElementById("DeleteSchool").innerHTML = `
+          <div class="text-center" style="font-size:20px;">
+              <b>Are you sure you want to delete this school: <br> <b style="color:red;">${SchoolName}</b> ? </br>
+          </div>
+        `;
+        } catch (error) {
+          // Hide loading spinner in case of an error
+          document.getElementById("ListLoader").style.display = "none";
+          document.getElementById("DeleteLoader").style.display = "none";
+          console.error(error);
+        }
+
+      });
+    });
+  });
+
+  async function DeleteSchoolButton(schoolID){
+    try {
+      const response = await fetch(`/action/Delete-School/${schoolID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+      } else {
+        console.error("Failed to delete school");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function UpdateSchoolButton(schoolID){
+
+    const SchoolNameInput = document.getElementById("SchoolName").value;
+
+    const updateData = {
+      SchoolName: SchoolNameInput,
+      // Add other fields you want to update
+    };
+
+    Swal.fire({
+        title: "Do you want to update this School?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+          try {
+            const response = await fetch(`/action/Edit-School/${schoolID}`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updateData),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to accept document: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              const responseData = await response.json();
+              console.log(responseData);
+
+              // Handle the response data as needed
+              location.reload();
+            } else {
+              // Handle non-JSON response here if needed
+              console.error("Server response is not in JSON format");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+  }
+</script>
+<%- include('../ui/footer2.ejs') %>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<!-- Coding by CodingLab | www.codinglabweb.com -->
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/jpg" href="/public/asset/DepEd Seal.png"/>
+
+  <!----======== CSS ======== -->
+  <link href="/public/asset/style2.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <!-- Option 1: Include in HTML -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+
+  <!-- For Sweet Alert Link -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+  <!-- Data Table Links -->
+  <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+  <link href="https://cdn.datatables.net/v/bs5/dt-1.13.8/datatables.min.css" rel="stylesheet">
+
+  <link href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.dataTables.min.css" rel="stylesheet">
+
+  <!----===== Boxicons CSS ===== -->
+  <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+  <script>
+    $(document).ready(function() {
+      $("table.commonTable").DataTable({
+        order: [0, 'desc'],
+        columnDefs: [{
+          targets: [0],
+          searchable: false
+        }],
+        "pageLength": 5,
+        "lengthMenu": [ [5, 10, 25, 50, -1], [5, 10, 25, 50, "All"] ]
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="sidebar">
+    <header>
+      <div class="image-text">
+        <% if(user.userProfile === null || user.userProfile === ""){ %>
+        <span class="image">
+          <img src="/public/img/DefaultProfile.jpg">
+        </span>
+        <% } else{  %>
+        <span class="image">
+          <img src="/public/img/<%= user.userProfile %>">
+        </span>
+        <% } %>
+        <div class="text logo-text">
+          <span class="name"><%= user.userName %></span>
+          <span class="profession"><%= user.userPosition %></span>
+        </div>
+      </div>
+      <!-- <i class='bx bx-chevron-right toggle'></i> -->
+      <div class="toggle"><i class='bx bx-menu' id="header-toggle"></i>
+    </header>
+
+    <div class="menu-bar">
+      <div class="menu">
+        <hr>
+        <ul class="menu-links">
+
+          <li class="nav-link li-design">
+            <a href="/dashboard" class="with-design">
+              <i class='bx bx-home-alt icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dashboard"></i>
+              <span class="text nav-text">Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-link li-design">
+            <a href="/calendar" class="with-design">
+              <i class='bx bx-calendar icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Calendar of Activities"></i>
+              <span class="text nav-text" style="font-size: 15px;">Calendar of Activities</span>
+            </a>
+          </li>
+          <li class="nav-link li-design">
+            <a href="/resources" class="with-design">
+              <i class='bx bx-book-open icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Learning Resources"></i>
+              <span class="text nav-text" style="font-size: 15px;">Learning Resources</span>
+            </a>
+          </li>
+          <li class="nav-link li-design">
+            <a href="/speakers" class="with-design">
+              <i class='bx bx-user-voice icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Speakers"></i>
+              <span class="text nav-text">Speakers</span>
+            </a>
+          </li>
+          <% if( user.userType == "Admin" || user.userType == "School Head"){ %>
+          <li class="nav-link li-design">
+            <a href="/attended#" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='fa-solid fa-users-rectangle icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Trainings Attended"></i>
+              <span class="text nav-text" style="font-size: 15px;">Trainings Attended</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark ms-4">
+              <li><a class="dropdown-item" href="/PersonalTraining"><i class='fa-solid fa-users-rectangle'></i>&nbsp&nbsp Personal Training</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <% if( user.userType == "Admin"){ %>
+              <li><a class="dropdown-item" href="/DivisionsTraining"><i class='fa-solid fa-users-rectangle'></i>&nbsp&nbsp Divisions Training</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <% } %>
+              <li><a class="dropdown-item" href="/TeachersTraining"><i class='fa-solid fa-users-rectangle'></i>&nbsp&nbsp Teachers Training</a></li>
+            </ul>
+          </li>
+          <% } else{%>
+            <li class="nav-link li-design">
+              <a href="/PersonalTraining" class="with-design">
+                <i class='fa-solid fa-users-rectangle icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dashboard"></i>
+                <span class="text nav-text" style="font-size: 15px;">Trainings Attended</span>
+              </a>
+            </li>
+          <% } %>
+          <!-- <li class="nav-link li-design">
+            <a href="/attended" class="with-design">
+              <i class='fa-solid fa-users-rectangle icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Trainings Attended"></i>
+              <span class="text nav-text" style="font-size: 15px;">Trainings Attended</span>
+            </a>
+          </li> -->
+          <li class="nav-link li-design">
+            <a href="/conducted" class="with-design">
+              <i class='fa-solid fa-chalkboard-user icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Trainings Conducted"></i>
+              <span class="text nav-text" style="font-size: 15px;">Trainings Conducted</span>
+            </a>
+          </li>
+          <% if( user.userType == "Admin"){ %>
+          <hr>
+          <li class="nav-link li-design">
+            <a href="/users" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='bx bx-user icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Users"></i>
+              <span class="text nav-text">Users</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark ms-4">
+              <li><a class="dropdown-item" href="/UserList"><i class='bx bxs-user-detail'></i>&nbsp&nbsp User List</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="/CreateAccount"><i class='bx bx-user-plus'></i>&nbsp&nbsp Create User</a></li>
+            </ul>
+          </li>
+          <li class="nav-link li-design">
+            <a href="/SchoolList" class="with-design">
+              <i class='bx bxs-school icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="School List"></i>
+              <span class="text nav-text" style="font-size: 15px;">School List</span>
+            </a>
+          </li>
+          <% } %>
+          <hr>
+          <!-- <li class="nav-link li-design">
+            <a href="#" class="with-design" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='bx bx-cog icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Account Settings"></i>
+              <span class="text nav-text">Account Settings</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark ms-4">
+              <li><a class="dropdown-item view_user" href="/viewaccount" data-bs-toggle="modal" data-bs-target="#view_user" data-id="<%= user._id %>"><i class='bx bx-cog'></i>&nbsp&nbspView Account</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item view_user" href="/viewprofile" data-bs-toggle="modal" data-bs-target="#view_profile" data-id="<%= user._id %>"><i class='bx bx-user-pin'></i>&nbsp&nbspView Profile</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="/users/logout"><i class='bx bx-log-out'></i>&nbsp&nbspLog-Out</a></li>
+            </ul>
+          </li> -->
+
+        </ul>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- MODAL -->
+  <!-- View Information Modal -->
+  <div class="modal fade" id="view_user" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">User Information</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="" id="userCredential">
+            <b class="text-muted mb-1">User's Credentials</b>
+            <hr class="mb-1" />
+            <div class="form-group">
+              <label class="control-label fw-bold">Name:</label>
+              <input type="text" id="nameInput" class="form-control form-control mb-3" value="<%= user.userName %>"  disabled  />
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">School:</label>
+              <input type="text" id="schoolInput" class="form-control form-control mb-3" value="<%= userSchool.userSchool %>"  disabled  />
+                <div id="schoolInputContainer">
+                </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">Position:</label>
+              <input type="text" id="positionInput" class="form-control form-control mb-3" value="<%= user.userPosition %>"  disabled  />
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">Username:</label>
+              <input type="email" id="usernameInput" class="form-control form-control mb-3" value="<%= user.userEmail %>"  disabled  />
+            </div>
+          </div>
+
+          <div id="changePassword">
+
+          </div>
+        </div>
+        <div class="modal-footer" id="modal-footer">
+          <button type="button" class="btn btn-primary" id="EditButton" onclick="EditButton('${userID}')">
+            Edit Credential
+          </button>
+          <button type="button" class="btn btn-dark" id="changePasswordInput" onclick="changePasswordInput('${userID}')">
+            Change Password
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- View Profile Modal -->
+  <div class="modal fade" id="view_profile" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">View Profile Picture</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="" id="">
+
+            <div class="image-text text-center">
+              <% if(user.userProfile === null || user.userProfile === ""){ %>
+              <span class="image">
+                <img src="/public/img/DefaultProfile.jpg" alt="">
+              </span>
+              <% } else{  %>
+              <span class="image">
+                <img src="/public/img/<%= user.userProfile %>" class="userProfile" alt="">
+              </span>
+              <% } %>
+            </div>
+            <div id="inputProfile">
+
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="modal-footer-profile">
+
+          <% if(user.userProfile === null || user.userProfile === ""){ %>
+          <button type="button" class="btn btn-primary" id="addProfile" onclick="addProfile('${userID}')">
+            Add Profile
+          </button>
+          <% } else{  %>
+          <button type="button" class="btn btn-primary" id="changeProfile" onclick="changeProfile('${userID}')">
+            Change Profile
+          </button>
+          <button type="button" class="btn btn-danger" id="removeProfile" onclick="removeProfile('${userID}')">
+            Remove Profile
+          </button>
+          <% } %>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../ui/UserAction.ejs') %>
+  <section class="home">
+    <div class="header" id="header">
+      <div class="header_toggle"></div>
+
+      <a href="#" class="with-design dropstart  " data-bs-toggle="dropdown" aria-expanded="false">
+        <% if(user.userProfile === null || user.userProfile === ""){ %>
+        <div class="header_img" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Account Settings"> <img src="/public/img/DefaultProfile.jpg" alt=""> </div>
+        <% } else{  %>
+        <div class="header_img" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-title="Account Settings"> <img src="/public/img/<%= user.userProfile %>" alt=""> </div>
+        <% } %>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-dark">
+        <li><a class="dropdown-item view_user" href="/viewaccount" data-bs-toggle="modal" data-bs-target="#view_user" data-id="<%= user._id %>"><i class='bx bx-cog'></i>&nbsp&nbspView Account</a></li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item view_user" href="/viewprofile" data-bs-toggle="modal" data-bs-target="#view_profile" data-id="<%= user._id %>"><i class='bx bx-user-pin'></i>&nbsp&nbspView Profile</a></li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item" href="/users/logout"><i class='bx bx-log-out'></i>&nbsp&nbspLog-Out</a></li>
+      </ul>
+
+    </div>

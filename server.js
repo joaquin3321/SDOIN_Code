@@ -70,7 +70,9 @@ app.use("/action", require("./routes/action.js")(io));
 
 // Enable EJS to view EJS File Format
 app.use(expressLayouts);
+app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
+app.use(express.static(__dirname + "routes"));
 
 //
 server.listen(8000, () => {

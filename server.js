@@ -72,7 +72,7 @@ app.use("/action", require("./routes/action.js")(io));
 app.use(expressLayouts);
 app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
-app.use(express.static(__dirname + "routes"));
+app.use(express.static("routes"));
 
 //
 server.listen(8000, () => {

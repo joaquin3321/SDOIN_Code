@@ -444,11 +444,13 @@ const checkPassword = (req, res, next) => {
 
   router.post("/addConducted", async (req, res) => {
     const {
+      programOwner,
       titleActivity,
       output,
       dateConducted,
       budgetAllocation,
       participants,
+      responsibleUnit,
       physicalTarget,
       accomplishment,
       sourceof_fund,
@@ -456,11 +458,13 @@ const checkPassword = (req, res, next) => {
     } = req.body;
 
     const conducted = new TrainingConducted({
+      programOwner,
       titleActivity,
       output,
       dateConducted,
       budgetAllocation,
       participants,
+      responsibleUnit,
       physicalTarget,
       accomplishment,
       sourceof_fund,

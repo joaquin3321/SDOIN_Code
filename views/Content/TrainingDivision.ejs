@@ -104,18 +104,6 @@
           filename: 'Exported Data for Divisions',
           className: 'custom-excel-button',
           text: '<i class="fa fa-file-excel-o"></i> Export as Excel',
-          exportOptions: {
-        // Ensure you export the rows and columns in the expected order
-        columns: ':visible', // Export only visible columns
-      },
-      customize: function(xlsx) {
-        var sheet = xlsx.xl.worksheets['sheet1.xml'];
-
-        // Example customization: removing auto-generated attributes that cause Excel issues
-        $('row', sheet).each(function() {
-          $(this).removeAttr('customAttribute'); // Example: customize as needed
-        });
-      },
         }
       ],
       lengthMenu: [
@@ -284,6 +272,7 @@
                 <b><%= attended.userName %></b>
               </td>
               <td><%= attended.userPosition %></td>
+
               <td>
 
                 <% attended.credential.forEach((credential, index) => { %>

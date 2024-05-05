@@ -31,12 +31,12 @@ const isAdmin = (req, res, next) => {
   router.get("/login", forwardAuthenticated, (req, res) => res.render("login"));
   //This is the landing page of the Admin when He/She going to Log-in
 
-  router.get("/calendar", forwardAuthenticated, ensureAuthenticated, async (req, res) => {
+  router.get("/calendar", ensureAuthenticated, async (req, res) => {
     try {
       const userID = req.user._id; //Unique ID of the user
       const user = await User.findById(userID, "userSchool").populate('userSchool', 'SchoolName');
       const SchoolName = { userSchool: user.userSchool ? user.userSchool.SchoolName : null, };
-
+      const userSchool = await School_List.find({}, "SchoolName");
       const event = await Event.find(
         {},
         "_id createTitle createDetails createStart createEnd"
@@ -45,6 +45,7 @@ const isAdmin = (req, res, next) => {
         user: req.user,
         userSchool: SchoolName,
         event: event,
+        userSchoolList: userSchool,
       });
     } catch (err) {
       console.error(err);
@@ -134,7 +135,7 @@ router.get("/conducted", ensureAuthenticated, async (req, res) => {
     const user = await User.findById(userID, "userSchool").populate('userSchool', 'SchoolName');
     const SchoolName = { userSchool: user.userSchool ? user.userSchool.SchoolName : null, };
     const userSchool = await School_List.find({}, "SchoolName");
-    const conducted = await TrainingConducted.find( {}, "_id titleActivity output dateConducted remarks" );
+    const conducted = await TrainingConducted.find( {}, "_id titleActivity programOwner output dateConducted remarks" );
     res.render("Content/TrainingsConducted", {
       user: req.user,
       userSchool: SchoolName,

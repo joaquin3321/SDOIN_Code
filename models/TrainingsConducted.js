@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
 
 const Training_Conducted = new mongoose.Schema({
-
+  programOwner:{
+    type: String,
+  },
   titleActivity:{
     type: String,
   },
@@ -27,6 +29,9 @@ const Training_Conducted = new mongoose.Schema({
     type: String,
   },
   remarks:{
+    type: String,
+  },
+  responsibleUnit:{
     type: String,
   },
 

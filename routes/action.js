@@ -70,6 +70,7 @@ function socketRouter(io) {
             userProfile: updateData.userProfile,
             userName: updateData.userName,
             userPosition: updateData.userPosition,
+            userSchool: updateData.userSchool,
           }
         }
       );

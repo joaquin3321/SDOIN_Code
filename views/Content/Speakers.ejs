@@ -277,7 +277,7 @@
                       <input type="text" name="speakerDistrict" class="form-control form-control mb-3" placeholder="District of the speaker" required />
                     </div>
                     <div class="form-group">
-                      <label class="control-label fw-bold">Bio Data:</label>
+                      <label class="control-label fw-bold">Field of Expertise:</label>
                       <input type="file" name="speakerBiodata" class="form-control form-control" accept="application/pdf" />
                       <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
                     </div>
@@ -550,11 +550,11 @@
                         <input type="text" value="${speakerDistrict}" class="form-control form-control mb-3" placeholder="Position of the speaker" disabled />
                       </div>
                       <div class="form-group">
-                        <label class="control-label fw-bold">Bio Data:</label>
+                        <label class="control-label fw-bold">Field of Expertise:</label>
                         <div class="input-group-append">
                           ${speakerBiodata ?
-                            `<a href="/public/speaker/${speakerBiodata}" target="_blank" class="form-control btn btn-success"><i class="fa-solid fa-file-pdf"></i> View Biodata</a>` :
-                            `<span class="form-control btn btn-secondary">No Biodata Available</span>`
+                            `<a href="/public/speaker/${speakerBiodata}" target="_blank" class="form-control btn btn-success"><i class="fa-solid fa-file-pdf"></i> View Expertise</a>` :
+                            `<span class="form-control btn btn-secondary">Not Available</span>`
                           }
                         </div>
                       </div>
@@ -596,7 +596,7 @@
                         <input type="text" id="speakerDistrict" value="${speakerDistrict}" class="form-control form-control mb-3" placeholder="Position of the speaker" required />
                       </div>
                       <div class="form-group">
-                        <label class="control-label fw-bold">Bio Data:</label>
+                        <label class="control-label fw-bold">Field of Expertise:</label>
                           <div class="input-group">
                             <input type="file" id="speakerBiodata" class="form-control form-control" accept="application/pdf" />
                             ${speakerBiodata ?

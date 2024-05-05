@@ -1,4 +1,5 @@
 <%- include('../ui/sidebar2.ejs') %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 <title>Trainings Conducted</title>
 <style>
   .styled-table {
@@ -56,6 +57,7 @@
         <thead class="table-info">
           <tr>
             <th width="5%" class="text-center">#</th>
+            <th>Program of Activity</th>
             <th>Title of Activity</th>
             <th>Output</th>
             <th>Date Conducted</th>
@@ -68,6 +70,9 @@
           <tr>
             <td class="text-center">
               <b><%= i + 1 %></b>
+            </td>
+            <td>
+              <b class="truncate"><%= conducted.programOwner %></b>
             </td>
             <td>
               <b class="truncate"><%= conducted.titleActivity %></b>
@@ -109,9 +114,9 @@
   </div>
 </div>
 <% if( user.userType !== "Admin"){ %>
-  <script>
-    document.getElementById("action").style.width = "5%"
-  </script>
+<script>
+  document.getElementById("action").style.width = "5%"
+</script>
 <% } %>
 
 <!-- Handles Adding New Conducted Training -->
@@ -129,6 +134,10 @@
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6 border-right">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Program Owner:</label>
+                      <input type="text" name="programOwner" class="form-control form-control mb-3" placeholder="Program Owner" required />
+                    </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Title of the Activity:</label>
                       <input type="text" name="titleActivity" class="form-control form-control mb-3" placeholder="Title of the Activity" required />
@@ -152,6 +161,10 @@
                   </div>
 
                   <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Responsible Unit:</label>
+                      <input type="text" name="responsibleUnit" class="form-control form-control mb-3" placeholder="Responsible Unit" required />
+                    </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Physical Target:</label>
                       <input type="text" name="physicalTarget" class="form-control form-control mb-3" placeholder="Who is the physical target of the Activity?" required />
@@ -296,9 +309,19 @@
           const response = await fetch(`/action/getConducted/${conductedID}`);
           const data = await response.json();
 
-          const { titleActivity, output, dateConducted,
-          budgetAllocation, participants, physicalTarget,
-          accomplishment, sourceof_fund, remarks } = data;
+          const {
+            programOwner,
+            titleActivity,
+            output,
+            dateConducted,
+            budgetAllocation,
+            participants,
+            responsibleUnit,
+            physicalTarget,
+            accomplishment,
+            sourceof_fund,
+            remarks
+          } = data;
 
           const Formated_Date = formatDate(dateConducted);
           console.log(Formated_Date)
@@ -315,43 +338,55 @@
                 <div class="row">
                   <div class="col-md-6 border-right">
                     <div class="form-group">
+                      <label class="control-label fw-bold">Program Owner:</label>
+                      <input type="text" class="form-control form-control mb-3" id="getProgramOwner" placeholder="Program Owner" value="${programOwner}" disabled />
+                    </div>
+                    <div class="form-group">
                       <label class="control-label fw-bold">Title of the Activity:</label>
-                      <input type="text" id="titleActivity" class="form-control form-control mb-3" placeholder="Title of the Activity" value="${titleActivity}" disabled/>
+                      <input type="text" class="form-control form-control mb-3" id="getTitleActivity" placeholder="Title of the Activity" value="${titleActivity}" disabled/>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Output:</label>
-                      <input type="text" id="output" class="form-control form-control mb-3" placeholder="Output of the Activity" value="${output}" disabled/>
+                      <input type="text" class="form-control form-control mb-3" id="getOutput" placeholder="Output of the Activity" value="${output}" disabled/>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Date Conducted:</label>
-                      <input type="text" id="dateConducted" class="form-control form-control mb-3" placeholder="When did it happen" value="${Formated_Date}" disabled/>
+                      <input type="text" class="form-control form-control mb-3" id="GetFormated_Date" placeholder="When did it happen" value="${Formated_Date}" disabled/>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Budget Allocation:</label>
-                      <input type="number" id="budgetAllocation" class="form-control form-control mb-3" min="1"  placeholder="How much is the budget?" value="${budgetAllocation}" disabled/>
+                      <input type="number"  class="form-control form-control mb-3" min="1" id="getBudgetAllocation"  placeholder="How much is the budget?" value="${budgetAllocation}" disabled/>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Participants:</label>
-                      <input type="text" id="participants" class="form-control form-control mb-3" placeholder="Who Participate in the Activity?" value="${participants}" disabled/>
+                      <input type="text" class="form-control form-control mb-3" id="getParticipants" placeholder="Who Participate in the Activity?" value="${participants}" disabled/>
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="form-group">
+                      <label class="control-label fw-bold">Responsible Unit:</label>
+                      <input type="text" class="form-control form-control mb-3" id="getResponsibleUnit" placeholder="Responsible Unit" value="${responsibleUnit}" disabled />
+                    </div>
+                    <div class="form-group">
                       <label class="control-label fw-bold">Physical Target:</label>
-                      <input type="text" id="physicalTarget" class="form-control form-control mb-3" placeholder="Who is the target of the Activity?" value="${physicalTarget}" disabled/>
+                      <input type="text"  class="form-control form-control mb-3" id="getPhysicalTarget" placeholder="Who is the target of the Activity?" value="${physicalTarget}" disabled/>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Accomplishment:</label>
-                      <input type="text" id="accomplishment" class="form-control form-control mb-3" placeholder="Accomplishment of the Activity" value="${accomplishment}" disabled/>
+                      <input type="text"  class="form-control form-control mb-3" id="getAccomplishment" placeholder="Accomplishment of the Activity" value="${accomplishment}" disabled/>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Sources of Funds:</label>
-                      <input type="text" id="sourceof_fund" class="form-control form-control mb-3" placeholder="Source of Funds" value="${sourceof_fund}" disabled/>
+                      <input type="text" class="form-control form-control mb-3" id="getSourceof_fund" placeholder="Source of Funds" value="${sourceof_fund}" disabled/>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Remarks:</label>
-                      <input type="text" id="remarks" class="form-control form-control mb-3" placeholder="Remarks" value="${remarks}" disabled/>
+                      <input type="text" class="form-control form-control mb-3" id="getRemarks" placeholder="Remarks" value="${remarks}" disabled/>
+                    </div>
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Export Button:</label>
+                      <button class="form-control btn btn-success" id="export-excel">Export as Excel</button>
                     </div>
                   </div>
                 </div>
@@ -360,6 +395,73 @@
           </div>
           `;
 
+          document.getElementById('export-excel').addEventListener('click', function() {
+            // Collecting data from the HTML structure
+            const activityData = [
+              ['Program Owner', 'Title of the Activity', 'Output' , 'Date Conducted', 'Budget Allocation', 'Participants', 'Responsible Unit', 'Physical Target', 'Accomplishment', 'Sources of Funds', 'Remarks'], // Column headers
+              [
+                document.getElementById("getProgramOwner").value,
+                document.getElementById("getTitleActivity").value,
+                document.getElementById("getOutput").value,
+                document.getElementById("GetFormated_Date").value,
+                document.getElementById("getBudgetAllocation").value,
+                document.getElementById("getParticipants").value,
+                document.getElementById("getResponsibleUnit").value,
+                document.getElementById("getPhysicalTarget").value,
+                document.getElementById("getAccomplishment").value,
+                document.getElementById("getSourceof_fund").value,
+                document.getElementById("getRemarks").value,
+              ], // Column data
+            ];
+
+            // Create a new workbook
+            const wb = XLSX.utils.book_new();
+            // Convert data to worksheet
+            const ws = XLSX.utils.aoa_to_sheet(activityData);
+
+            // Adjust column widths automatically
+            ws['!cols'] = [{
+                wch: 30
+              }, // Program Owner - Width of 20 characters
+              {
+                wch: 30
+              }, // Title of the Activity - Width of 30 characters
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+              {
+                wch: 30
+              },
+
+            ];
+
+            // Append the worksheet to the workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Activity Data');
+            // Trigger file download
+            XLSX.writeFile(wb, 'ActivityData.xlsx');
+          });
+
           document.getElementById("Edit_Conducted").innerHTML = `
           <div style="font-size:20px;" class="mb-2"><b>Edit This Conducted Training: <b style="color:green;">${titleActivity} </b></div>
           <div class="col-lg-12 center">
@@ -367,6 +469,10 @@
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6 border-right">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Program Owner:</label>
+                      <input type="text" id="programOwner" class="form-control form-control mb-3" placeholder="Program Owner" value="${programOwner}" />
+                    </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Title of the Activity:</label>
                       <input type="text" id="titleActivity" class="form-control form-control mb-3" placeholder="Title of the Activity" value="${titleActivity}" />
@@ -390,6 +496,10 @@
                   </div>
 
                   <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="control-label fw-bold">Responsible Unit:</label>
+                      <input type="text" id="responsibleUnit" class="form-control form-control mb-3" placeholder="Responsible Unit" value="${responsibleUnit}" />
+                    </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Physical Target:</label>
                       <input type="text" id="physicalTarget" class="form-control form-control mb-3" placeholder="Who is the target of the Activity?" value="${physicalTarget}"/>
@@ -430,22 +540,24 @@
   });
 
   function formatDate(date) {
-      const options = {
-        timeZone: "Asia/Manila",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      };
-      return new Date(date).toLocaleDateString("en-US", options);
-    }
+    const options = {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    return new Date(date).toLocaleDateString("en-US", options);
+  }
 
   async function EditConducted(conductedID) {
 
+    const programOwnerUpdate = document.getElementById("programOwner").value;
     const titleActivityUpdate = document.getElementById("titleActivity").value;
     const outputUpdate = document.getElementById("output").value;
     const dateConductedUpdate = document.getElementById("dateConducted").value;
     const budgetAllocationUpdate = document.getElementById("budgetAllocation").value;
     const participantsUpdate = document.getElementById("participants").value;
+    const responsibleUnitUpdate = document.getElementById("responsibleUnit").value;
     const physicalTargetUpdate = document.getElementById("physicalTarget").value;
     const accomplishmentUpdate = document.getElementById("accomplishment").value;
     const sourceof_fundUpdate = document.getElementById("sourceof_fund").value;
@@ -453,11 +565,13 @@
 
 
     const updateData = {
+      programOwner: programOwnerUpdate,
       titleActivity: titleActivityUpdate,
       output: outputUpdate,
       dateConducted: dateConductedUpdate,
       budgetAllocation: budgetAllocationUpdate,
       participants: participantsUpdate,
+      responsibleUnit: responsibleUnitUpdate,
       physicalTarget: physicalTargetUpdate,
       accomplishment: accomplishmentUpdate,
       sourceof_fund: sourceof_fundUpdate,
@@ -525,5 +639,7 @@
     }
   }
 </script>
+
+
 
 <%- include('../ui/footer2.ejs') %>

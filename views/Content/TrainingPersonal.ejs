@@ -39,7 +39,7 @@
   .profile img {
     height: 60px;
   }
-  hr {
+  #DividerForInput {
   border-top: 5px solid #000000; /* You can adjust the color as needed */
 }
 </style>
@@ -151,7 +151,7 @@
                 <span class="input-group-text">@</span>
                 <input type="date" class="form-control" name="credential[0][trainingEnd]" required>
               </div>
-              <hr>
+              <hr id="DividerForInput">
             </div>
           </div>
 
@@ -385,6 +385,7 @@
       const container = document.getElementById('credentialContainer');
       const breakEnd = document.createElement('br');
       const breakLine = document.createElement('hr');
+      breakLine.id ='DividerForInput';
 
       // Create a new credential entry
       const newEntry = document.createElement('div');

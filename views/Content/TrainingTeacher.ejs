@@ -130,6 +130,8 @@
       var startDate = new Date(data[4]); // Assuming column 4 is the start date
       var endDate = new Date(data[5]); // Assuming column 5 is the end date
 
+      console.log("Dates: ",startDate)
+
       // min = min || null;
       // max = max || null;
 
@@ -145,10 +147,10 @@
     });
     // Create date inputs
     minDate = new DateTime('#start_date', {
-      format: 'MMMM Do YYYY'
+      format: 'MMMM DD YYYY'
     });
     maxDate = new DateTime('#end_date', {
-      format: 'MMMM Do YYYY'
+      format: 'MMMM DD YYYY'
     });
     // Refilter the table
     $('#start_date, #end_date').on('change', function() {

@@ -324,7 +324,7 @@ const checkPassword = (req, res, next) => {
   //File Upload for the News Images
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/news");
+      cb(null, "/SDOIN_Code/public/news");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
@@ -360,7 +360,7 @@ const checkPassword = (req, res, next) => {
   //Upload image for the speakers
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/speaker");
+      cb(null, "/SDOIN_Code/public/speaker");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
@@ -409,7 +409,7 @@ const checkPassword = (req, res, next) => {
   //File Upload for the News Images
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/resources");
+      cb(null, "/SDOIN_Code/public/resources");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
@@ -487,7 +487,7 @@ const checkPassword = (req, res, next) => {
   //File Upload for the News Images
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/attended");
+      cb(null, "/SDOIN_Code/public/attended");
     },
     filename: function (req, file, cb) {
       cb(null, "trainingCertificate_" + Date.now() + "_" + file.originalname);

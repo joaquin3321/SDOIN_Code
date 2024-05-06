@@ -24,7 +24,7 @@ function socketRouter(io) {
   //File for the User's Profile Image
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/img");
+      cb(null, "/SDOIN_Code/public/img");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
@@ -111,7 +111,7 @@ function socketRouter(io) {
       }
 
       // Construct the absolute path to the file
-      const filePath = `/Thesis/DepEd/SDOIN_Code/public/img/${user.userProfile}`;
+      const filePath = `/SDOIN_Code/public/img/${user.userProfile}`;
 
       // Delete the actual file from the server
       await fs.unlink(filePath);
@@ -167,7 +167,7 @@ function socketRouter(io) {
       }
 
       // Construct the absolute paths to the files (assuming user has image property)
-      const imagePath = `/Thesis/DepEd/SDOIN_Code/public/img/${user.userProfile}`;
+      const imagePath = `/SDOIN_Code/public/img/${user.userProfile}`;
       const deletePromises = [];
 
       if (user.userProfile) {
@@ -279,7 +279,7 @@ function socketRouter(io) {
   //File Upload for the News Images
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/news");
+      cb(null, "/SDOIN_Code/public/news");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
@@ -357,7 +357,7 @@ function socketRouter(io) {
       }
 
       // Construct the absolute paths to the files (assuming newsItem has imagePath property)
-      const imagePath = `/Thesis/DepEd/SDOIN_Code/public/news/${newsItem.newsImage}`;
+      const imagePath = `/SDOIN_Code/public/news/${newsItem.newsImage}`;
 
       // Delete the actual files from the server
       await fs.unlink(imagePath);
@@ -416,8 +416,8 @@ function socketRouter(io) {
       }
 
       // Construct the absolute paths to the files
-      const imagePath = `/Thesis/DepEd/SDOIN_Code/public/speaker/${speaker.speakerImage}`;
-      const biodataPath = `/Thesis/DepEd/SDOIN_Code/public/speaker/${speaker.speakerBiodata}`;
+      const imagePath = `/SDOIN_Code/public/speaker/${speaker.speakerImage}`;
+      const biodataPath = `/SDOIN_Code/public/speaker/${speaker.speakerBiodata}`;
 
       // Delete the actual files from the server if the paths are not empty
       const deletePromises = [];
@@ -470,7 +470,7 @@ function socketRouter(io) {
   //File Upload for the News Images
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/speaker");
+      cb(null, "/SDOIN_Code/public/speaker");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
@@ -543,7 +543,7 @@ function socketRouter(io) {
       }
 
       // Construct the absolute path to the file
-      const filePath = `/Thesis/DepEd/SDOIN_Code/public/speaker/${speaker.speakerBiodata}`;
+      const filePath = `/SDOIN_Code/public/speaker/${speaker.speakerBiodata}`;
 
       // Delete the actual file from the server
       await fs.unlink(filePath);
@@ -587,7 +587,7 @@ function socketRouter(io) {
   //File Upload for the Learning Resources
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/resources");
+      cb(null, "/SDOIN_Code/public/resources");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
@@ -653,7 +653,7 @@ function socketRouter(io) {
       }
 
       // Construct the absolute paths to the files (assuming newsItem has imagePath property)
-      const filepath = `/Thesis/DepEd/SDOIN_Code/public/resources/${resourcesItem.resourcesFile}`;
+      const filepath = `/SDOIN_Code/public/resources/${resourcesItem.resourcesFile}`;
 
       // Delete the actual files from the server
       await fs.unlink(filepath);
@@ -725,7 +725,7 @@ function socketRouter(io) {
 
       // Get the file path from the credential document
       const fileName = credentialDocument.credential.find(cred => cred._id.toString() === PersonalAttendedID).trainingCertificate;
-      const filePath = `/Thesis/DepEd/SDOIN_Code/public/attended/${fileName}`;
+      const filePath = `/SDOIN_Code/public/attended/${fileName}`;
 
       // Delete the actual files from the server if the paths are not empty
       const deletePromises = [];
@@ -805,7 +805,7 @@ function socketRouter(io) {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "/Thesis/DepEd/SDOIN_Code/public/attended");
+      cb(null, "/SDOIN_Code/public/attended");
     },
     filename: function (req, file, cb) {
       cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);

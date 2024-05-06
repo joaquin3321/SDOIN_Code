@@ -127,22 +127,26 @@
     DataTable.ext.search.push(function(settings, data, dataIndex) {
       var min = minDate.val();
       var max = maxDate.val();
-      var startDate = new Date(data[4]); // Assuming column 4 is the start date
-      var endDate = new Date(data[5]); // Assuming column 5 is the end date
 
-      console.log("Dates: ",startDate)
+      // Normalize dates to remove time component
+      var normalizedMin = min ? normalizeDate(new Date(min)) : null;
+      var normalizedMax = max ? normalizeDate(new Date(max)) : null;
+      var startDate = normalizeDate(new Date(data[4])); // Assuming column 4 is the start date
+      var endDate = normalizeDate(new Date(data[5])); // Assuming column 5 is the end date
 
-      // min = min || null;
-      // max = max || null;
+      console.log(data[4])
+
+      console.log("Normalized Start Date:", startDate);
 
       if (
-        (min === null && max === null) ||
-        (min === null && endDate <= max) || // Compare with endDate
-        (min <= startDate && max === null) || // Compare with startDate
-        (min <= startDate && startDate <= max) // Compare with startDate
+        (normalizedMin === null && normalizedMax === null) ||
+        (normalizedMin === null && normalizedMax && endDate <= normalizedMax) ||
+        (normalizedMin && normalizedMin <= startDate && normalizedMax === null) ||
+        (normalizedMin && normalizedMin <= startDate && startDate <= normalizedMax)
       ) {
         return true;
       }
+
       return false;
     });
     // Create date inputs
@@ -156,6 +160,11 @@
     $('#start_date, #end_date').on('change', function() {
       table.draw();
     });
+
+    function normalizeDate(date) {
+      // Returns a new Date object set to midnight
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
 
     $('#myInput').on('keyup', function() {
       var searchText = this.value;
@@ -283,7 +292,7 @@
               <td><%= attended.userPosition %></td>
               <td>
                 <% attended.credential.forEach((credential, index) => { %>
-                <!-- <% const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %> -->
+                <% const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
                 <%= trainingStart %>
 
                 <% if (index < attended.credential.length - 1) { %>
@@ -294,7 +303,7 @@
               </td>
               <td>
                 <% attended.credential.forEach((credential, index) => { %>
-                <!-- <% const trainingEnd = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %> -->
+                <% const trainingEnd = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
                 <%= trainingEnd %></b>
 
                 <% if (index < attended.credential.length - 1) { %>
@@ -366,8 +375,8 @@
               <td><%= attended.userPosition %></td>
               <td>
                 <% attended.credential.forEach((credential, index) => { %>
-                <!-- <% const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %> -->
-                <%= trainingStart %>
+                <% const trainingStart2 = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                <%= trainingStart2 %>
 
                 <% if (index < attended.credential.length - 1) { %>
                 <hr> <!-- Add horizontal line after each iteration except the last one -->
@@ -377,8 +386,8 @@
               </td>
               <td>
                 <% attended.credential.forEach((credential, index) => { %>
-                <!-- <% const trainingEnd = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %> -->
-                <%= trainingEnd %></b>
+                <% const trainingEnd2 = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                <%= trainingEnd2 %></b>
 
                 <% if (index < attended.credential.length - 1) { %>
                 <hr> <!-- Add horizontal line after each iteration except the last one -->

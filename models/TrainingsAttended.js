@@ -33,7 +33,16 @@ const Training_Attended = new mongoose.Schema({
       },
       trainingEnd:{
         type: String,
-      }
+      },
+      trainingHours:{
+        type: String,
+      },
+      trainingSponsor:{
+        type: String,
+      },
+      trainingLevel:{
+        type: String,
+      },
     },
   ],
 });

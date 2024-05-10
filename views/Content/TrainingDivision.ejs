@@ -34,7 +34,7 @@
   }
 
   .attended {
-    padding: 60px 30px;
+    padding: 60px 15px;
     margin-top: 10px;
   }
 
@@ -131,23 +131,56 @@
       // Normalize dates to remove time component
       var normalizedMin = min ? normalizeDate(new Date(min)) : null;
       var normalizedMax = max ? normalizeDate(new Date(max)) : null;
-      var startDate = normalizeDate(new Date(data[4])); // Assuming column 4 is the start date
-      var endDate = normalizeDate(new Date(data[5])); // Assuming column 5 is the end date
 
-      console.log("Date From Column",data[4])
-      console.log("Normalized Start Date:", startDate);
 
-      if (
-        (normalizedMin === null && normalizedMax === null) ||
-        (normalizedMin === null && normalizedMax && endDate <= normalizedMax) ||
-        (normalizedMin && normalizedMin <= startDate && normalizedMax === null) ||
-        (normalizedMin && normalizedMin <= startDate && startDate <= normalizedMax)
-      ) {
-        return true;
+      let rawData = data[4];
+      let cleanedData = rawData.trim();
+      let splitData = cleanedData.split(/\s{2,}/);
+
+      let startDates = [];
+
+      splitData.forEach((splitData) => {
+        normalizeDates = normalizeDate(new Date(splitData));
+        startDates.push(normalizeDates)
+      })
+
+      let idk = startDates.flat();
+
+      for (let i = 0; i < idk.length; i++) {
+        let startDate1 = idk[i]; // Current date in the iteration
+        console.log(`Start Date at index ${i}:`, startDate1); // Log each date
+
+        // Check the condition with 'normalizedMin', 'normalizedMax', and 'startDate1'
+        if (
+          (normalizedMin === null && normalizedMax === null) ||
+          (normalizedMin === null && normalizedMax && startDate1 <= normalizedMax) ||
+          (normalizedMin && normalizedMin <= startDate1 && normalizedMax === null) ||
+          (normalizedMin && normalizedMin <= startDate1 && startDate1 <= normalizedMax)
+        )
+        {
+          // Return true if any condition meets the requirements
+          return true;
+        }
       }
 
+      // If no conditions were met, return false
       return false;
+
+
+
+      // if (
+      //   (normalizedMin === null && normalizedMax === null) ||
+      //   (normalizedMin === null && normalizedMax && endDate <= normalizedMax) ||
+      //   (normalizedMin && normalizedMin <= startDate1 && normalizedMax === null) ||
+      //   (normalizedMin && normalizedMin <= startDate1 && startDate <= normalizedMax)
+      // ) {
+      //   return true;
+      // }
+      // return false;
+
     });
+
+
     // Create date inputs
     minDate = new DateTime('#start_date', {
       format: 'MMMM Do YYYY'
@@ -284,17 +317,28 @@
               <td><%= attended.userPosition %></td>
 
               <td>
+                <%
+                let trainingStartDates = [];
 
-                <% attended.credential.forEach((credential, index) => { %>
-                <!-- <% const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %> -->
+                attended.credential.forEach((credential, index) => {
+                  const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                  trainingStartDates.push(trainingStart); // Display individual dates during the loop %>
+
                 <%= trainingStart %>
 
-                <% if (index < attended.credential.length - 1) { %>
-                <hr> <!-- Add horizontal line after each iteration except the last one -->
-                <% } %>
+                <% // Add a horizontal line after each date except the last one
+                  if (index < attended.credential.length - 1) {
+                    %>
+                <hr>
+                <%
+                  }
+                });
 
-                <% }) %>
-
+                // This part prints the complete list of dates only once
+                %>
+                <!-- If needed, use or display the complete list of dates elsewhere -->
+                <!-- Commented out to avoid redundant output -->
+                <!-- <%= trainingStartDates.join(', ') %> -->
               </td>
               <td>
                 <% attended.credential.forEach((credential, index) => { %>

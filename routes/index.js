@@ -13,6 +13,29 @@ const { ensureAuthenticated, forwardAuthenticated } = require("../config/auth");
 function socketRouter(io) {
   const router = express.Router();
 
+
+  router.get("/testing", ensureAuthenticated, async (req, res) => {
+    try {
+      const userID = req.user._id; //Unique ID of the user
+      const user = await User.findById(userID, "userSchool").populate('userSchool', 'SchoolName');
+      const SchoolName = { userSchool: user.userSchool ? user.userSchool.SchoolName : null, };
+      const userSchool = await School_List.find({}, "SchoolName");
+      const news = await NewsContent.find(
+        {},
+        "_id newsTitle newsContent newsImage"
+      ); // Fetch user documents and select the 'userDept' field
+      res.render("ui/testing", {
+        user: req.user,
+        userSchool: SchoolName,
+        news: news,
+        userSchoolList: userSchool,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server Error");
+    }
+  });
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const isAdmin = (req, res, next) => {

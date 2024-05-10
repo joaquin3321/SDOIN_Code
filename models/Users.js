@@ -28,6 +28,9 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  userDepartment: {
+    type: String,
+  },
   userPass: {
     type: String,
     required: true,

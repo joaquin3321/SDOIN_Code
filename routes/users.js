@@ -3,6 +3,7 @@ const uuid = require("uuid");
 const bcrypt = require("bcrypt");
 const passport = require("passport");
 const multer = require("multer");
+const nodemailer = require("nodemailer");
 
 // Load User model
 const User = require("../models/Users");
@@ -26,16 +27,27 @@ const { ensureAuthenticated, forwardAuthenticated } = require("../config/auth");
 function socketRouter(io) {
   const router = express.Router();
 
-// Define your password (replace 'yourPassword' with your actual password)
-const correctPassword = 'AdminOnly';
+  async function getUserEmails() {
+    try {
+      const users = await User.find({}, "userEmail"); // Retrieve all user emails
+      return users.map((user) => user.userEmail); // Return an array of email addresses
+      console.log(users);
+    } catch (err) {
+      console.error("Error fetching user emails:", err);
+      return [];
+    }
+  }
 
-// Middleware function to check the password
-const checkPassword = (req, res, next) => {
-  // Check if the request contains a valid password
-  const enteredPassword = req.query.password; // assuming password is sent as a query parameter
-  if (!enteredPassword || enteredPassword !== correctPassword) {
-    // Incorrect password, send an alert and redirect
-    return res.status(200).send(`
+  // Define your password (replace 'yourPassword' with your actual password)
+  const correctPassword = "AdminOnly";
+
+  // Middleware function to check the password
+  const checkPassword = (req, res, next) => {
+    // Check if the request contains a valid password
+    const enteredPassword = req.query.password; // assuming password is sent as a query parameter
+    if (!enteredPassword || enteredPassword !== correctPassword) {
+      // Incorrect password, send an alert and redirect
+      return res.status(200).send(`
       <script>
         const enteredPassword = prompt('Please enter the password:');
         if (!enteredPassword || enteredPassword !== '${correctPassword}') {
@@ -47,23 +59,28 @@ const checkPassword = (req, res, next) => {
 
       </script>
     `);
-  }
-
-  // Password is correct, proceed to the next middleware or route handler
-  next();
-};
-  // Register ROUTE
-  router.get("/register", forwardAuthenticated, checkPassword, async (req, res) => {
-    try {
-      const userSchool = await School_List.find({}, "SchoolName");
-      res.render("register", {
-        userSchoolList: userSchool,
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server Error");
     }
-  });
+
+    // Password is correct, proceed to the next middleware or route handler
+    next();
+  };
+  // Register ROUTE
+  router.get(
+    "/register",
+    forwardAuthenticated,
+    checkPassword,
+    async (req, res) => {
+      try {
+        const userSchool = await School_List.find({}, "SchoolName");
+        res.render("register", {
+          userSchoolList: userSchool,
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+      }
+    }
+  );
 
   // Login
   router.post("/login", (req, res, next) => {
@@ -119,11 +136,11 @@ const checkPassword = (req, res, next) => {
   router.post("/register", async (req, res) => {
     try {
       const userSchoolList = await School_List.find({}, "SchoolName");
-      console.log(req.body);
       const {
         userName,
         userSchool,
         userPosition,
+        userDepartment,
         userType,
         userProfile,
         userEmail,
@@ -131,6 +148,7 @@ const checkPassword = (req, res, next) => {
         userPass2,
       } = req.body;
       let errors = [];
+      console.log("Welcome to the system", userName);
       const generatedUuid = uuid.v4();
       const capitalizedUserName = capitalizeEachWord(userName);
       const capitalizeduserPosition = capitalizeEachWord(userPosition);
@@ -148,12 +166,13 @@ const checkPassword = (req, res, next) => {
       }
 
       if (errors.length > 0) {
-        res.render('register', {
+        res.render("register", {
           userSchoolList: userSchoolList,
           errors,
           userName,
           userSchool,
           userPosition,
+          userDepartment,
           userType,
           userEmail,
           userPass,
@@ -163,12 +182,13 @@ const checkPassword = (req, res, next) => {
         User.findOne({ userEmail: userEmail }).then((user) => {
           if (user) {
             errors.push({ msg: "Email already exists" });
-            res.render('register', {
+            res.render("register", {
               userSchoolList: userSchoolList,
               errors,
               userName,
               userSchool,
               userPosition,
+              userDepartment,
               userType,
               userEmail,
               userPass,
@@ -180,11 +200,14 @@ const checkPassword = (req, res, next) => {
               userName: capitalizedUserName,
               userSchool,
               userPosition: capitalizeduserPosition,
+              userDepartment,
               userType,
               userProfile,
               userEmail,
               userPass,
             });
+
+            sendEmailNotificationNewUser(newUser);
 
             bcrypt.genSalt(10, (err, salt) => {
               bcrypt.hash(newUser.userPass, salt, (err, hash) => {
@@ -193,8 +216,11 @@ const checkPassword = (req, res, next) => {
                 newUser
                   .save()
                   .then((user) => {
-                    req.flash("success_msg", "You Can Now Successfully Log-in!!");
-                    res.redirect('/login');
+                    req.flash(
+                      "success_msg",
+                      "You Can Now Successfully Log-in!!"
+                    );
+                    res.redirect("/login");
                   })
                   .catch((err) => console.log(err));
               });
@@ -208,6 +234,34 @@ const checkPassword = (req, res, next) => {
     }
   });
 
+  const EmailCheck = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER, // Your Gmail address (use environment variables)
+      pass: process.env.EMAIL_PASS, // Gmail app password
+    },
+  });
+
+  // Function to send an email notification to multiple recipients
+  async function sendEmailNotificationNewUser(newUser) {
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: newUser.userEmail, // Join all email addresses with commas
+      subject: `INMaestroLXP - Thank you for registering`, // Email subject
+      text: `Dear ${newUser.userName}. \n\nYou have successfully registered to INMaestroLXP: HUMAN RESOURCES DEVELOPMENT SYSTEM FOR EDUCATION PROFESSIONALS! \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
+      \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+      `, // Email body
+    };
+
+    EmailCheck.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log(`Email sent New User ${newUser.userName} :`, info.response);
+      }
+    });
+  }
+
   function capitalizeEachWord(str) {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
   }
@@ -220,6 +274,7 @@ const checkPassword = (req, res, next) => {
         userName,
         userSchool,
         userPosition,
+        userDepartment,
         userType,
         userProfile,
         userEmail,
@@ -261,6 +316,7 @@ const checkPassword = (req, res, next) => {
           userName,
           userSchool,
           userPosition,
+          userDepartment,
           userType,
           userEmail,
           userPass,
@@ -277,6 +333,7 @@ const checkPassword = (req, res, next) => {
               userName,
               userSchool,
               userPosition,
+              userDepartment,
               userType,
               userEmail,
               userPass,
@@ -288,6 +345,7 @@ const checkPassword = (req, res, next) => {
               userName: capitalizedUserName,
               userSchool: userSchoolUserName,
               userPosition: capitalizeduserPosition,
+              userDepartment,
               userType,
               userProfile,
               userEmail,
@@ -344,7 +402,10 @@ const checkPassword = (req, res, next) => {
       newsImage: req.file ? req.file.filename : "", // Use the file name if provided
     });
     io.emit("newNews", news);
+    sendEmailNotificationNews(news);
+
     console.log(news);
+
     try {
       await news.save();
     } catch (err) {
@@ -354,6 +415,41 @@ const checkPassword = (req, res, next) => {
     req.flash("success_msg", `News Created Successfully.`);
     return res.redirect("/dashboard");
   });
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER, // Your Gmail address (use environment variables)
+      pass: process.env.EMAIL_PASS, // Gmail app password
+    },
+  });
+
+  // Function to send an email notification to multiple recipients
+  async function sendEmailNotificationNews(news) {
+    const recipientEmails = await getUserEmails(); // Fetch all user emails
+
+    if (recipientEmails.length === 0) {
+      console.warn("No email recipients found.");
+      return;
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: recipientEmails.join(","), // Join all email addresses with commas
+      subject: `New news has been posted by the Admin`, // Email subject
+      text: `A new news item has been created:\n\nTitle: ${news.newsTitle}.\n\nGo check the website for more Information!
+      \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+      `, // Email body
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
+  }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -499,8 +595,14 @@ const checkPassword = (req, res, next) => {
   }).any();
 
   router.post("/addTrainingAttended", uploadCertificate, async (req, res) => {
-    const { attendedID, userName, userSchool, userPosition,  userProfile, credential } =
-      req.body;
+    const {
+      attendedID,
+      userName,
+      userSchool,
+      userPosition,
+      userProfile,
+      credential,
+    } = req.body;
     const trainingTitles = credential.map((item) => item.trainingTitle);
 
     try {
@@ -514,9 +616,14 @@ const checkPassword = (req, res, next) => {
         trainingTitles.forEach((item, index) => {
           existingResource.credential.push({
             trainingTitle: item,
-            trainingCertificate: certificateFiles[index] ? certificateFiles[index].filename : "",
+            trainingCertificate: certificateFiles[index]
+              ? certificateFiles[index].filename
+              : "",
             trainingStart: credential[index].trainingStart,
             trainingEnd: credential[index].trainingEnd,
+            trainingHours: credential[index].trainingHours,
+            trainingSponsor: credential[index].trainingSponsor,
+            trainingLevel: credential[index].trainingLevel,
           });
         });
 
@@ -535,9 +642,14 @@ const checkPassword = (req, res, next) => {
           userProfile,
           credential: trainingTitles.map((item, index) => ({
             trainingTitle: item,
-            trainingCertificate: certificateFiles[index] ? certificateFiles[index].filename : "",
+            trainingCertificate: certificateFiles[index]
+              ? certificateFiles[index].filename
+              : "",
             trainingStart: credential[index].trainingStart,
             trainingEnd: credential[index].trainingEnd,
+            trainingHours: credential[index].trainingHours,
+            trainingSponsor: credential[index].trainingSponsor,
+            trainingLevel: credential[index].trainingLevel,
           })),
         });
         await attended.save();
@@ -554,8 +666,7 @@ const checkPassword = (req, res, next) => {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   router.post("/addTeacherAttended", async (req, res) => {
-    const { attendedID, userSchool, credential } =
-      req.body;
+    const { attendedID, userSchool, credential } = req.body;
     const trainingTitles = credential.map((item) => item.trainingTitle);
 
     try {
@@ -609,10 +720,7 @@ const checkPassword = (req, res, next) => {
         }
       }
 
-      req.flash(
-        "success_msg",
-        "Training for Teacher Created Successfully."
-      );
+      req.flash("success_msg", "Training for Teacher Created Successfully.");
       return res.redirect("/TeachersTraining");
     } catch (err) {
       console.error(err);
@@ -623,8 +731,7 @@ const checkPassword = (req, res, next) => {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   router.post("/addDivisionAttended", async (req, res) => {
-    const { attendedID, userSchool, credential } =
-      req.body;
+    const { attendedID, userSchool, credential } = req.body;
     const trainingTitles = credential.map((item) => item.trainingTitle);
 
     try {
@@ -678,10 +785,7 @@ const checkPassword = (req, res, next) => {
         }
       }
 
-      req.flash(
-        "success_msg",
-        "Training Created Successfully."
-      );
+      req.flash("success_msg", "Training Created Successfully.");
       return res.redirect("/DivisionsTraining");
     } catch (err) {
       console.error(err);
@@ -689,23 +793,50 @@ const checkPassword = (req, res, next) => {
     }
   });
 
-  router.post("/addEvent", async (req,res) => {
-    const {createTitle, createDetails, createStart, createEnd} = req.body;
+  router.post("/addEvent", async (req, res) => {
+    const { createTitle, createDetails, createStart, createEnd } = req.body;
     const event = new Event({
-        createTitle,
-        createDetails,
-        createStart,
-        createEnd,
+      createTitle,
+      createDetails,
+      createStart,
+      createEnd,
     });
     console.log(event);
+    sendEmailNotificationEvent(event);
     try {
-        await event.save();
+      await event.save();
     } catch (error) {
-        console.error(err);
+      console.error(err);
       return res.status(500).json({ message: err.message, type: "danger" });
     }
     return res.redirect("/calendar");
-});
+  });
+
+  async function sendEmailNotificationEvent(event) {
+    const recipientEmails = await getUserEmails(); // Fetch all user emails
+
+    if (recipientEmails.length === 0) {
+      console.warn("No email recipients found.");
+      return;
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: recipientEmails.join(","), // Join all email addresses with commas
+      subject: `New event has been posted by the Admin`, // Email subject
+      text: `A new Event item has been created:\n\nTitle: ${event.createTitle}.\n\n Go check the website for more Information!
+      \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+      `, // Email body
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log(`Event sent: ${event.createTitle}`, info.response);
+      }
+    });
+  }
 
   return router;
 }

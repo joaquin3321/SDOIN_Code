@@ -51,68 +51,46 @@
               Register an Account
             </h3>
 
-            <%- include('../views/partials/messages.ejs')%>
+            <!-- <%- include('../views/partials/messages.ejs')%> -->
             <b class="text-muted">User's Information</b>
             <hr />
             <div class="col-md-6 border-right">
               <div class="form-group">
-                <label  class="control-label fw-bold">Name:</label>
-                <input type="text" name="userName" class="form-control form-control mb-3" style="text-transform: capitalize;" required />
-              </div>
-              <div class="form-group mb-3">
-                <label class="control-label fw-bold">School Name:</label>
-                <select class="form-select" aria-label="Default select example" name="userSchool" required>
-                  <option disabled selected hidden>--Select School--</option>
-                  <% userSchoolList.forEach(school => { %>
-                    <option value="<%= school._id %>"><%= school.SchoolName %></option>
-                  <% }); %>
-                </select>
+                <label  class="control-label fw-bold">Title of the Training:</label>
+                <input type="text" name="userName" class="form-control form-control mb-3" placeholder="What is the title of the training" required />
               </div>
               <div class="form-group">
-                <label class="control-label fw-bold">Position:</label>
-                <input type="text" name="userPosition" class="form-control form-control mb-3" style="text-transform: capitalize;" required placeholder="e.g. Teacher 1"/>
+                <label  class="control-label fw-bold">Start Date of the Training:</label>
+                <input type="date" name="userName" class="form-control form-control mb-3" required />
               </div>
-              <div class="form-group mb-3">
-                <label class="control-label fw-bold">Department:</label>
-                <select class="form-select" aria-label="Default select example" name="userDepartment" id="" required >
-                  <option disabled selected hidden>--Select Department--</option>
-                  <option value="Science">Science</option>
-                  <option value="TLE">TLE</option>
-                  <option value="AP">AP</option>
-                  <option value="Filipino">Filipino</option>
-                  <option value="English">English</option>
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Values Education">Values Education</option>
-                  <option value="Mapeh">Mapeh</option>
-                  <option value="Administration & Facilities Staff">Administration & Facilities Staff</option>
-                </select>
-                <select class="form-select" aria-label="Default select example" name="userType" id="userType" required hidden>
-                  <option disabled selected hidden>--User Type--</option>
-                </select>
+              <div class="form-group">
+                <label class="control-label fw-bold">End Date of the Training:</label>
+                <input type="date" name="userPosition" class="form-control form-control mb-3" required />
+              </div>
+              <div class="form-group">
+                <label class="control-label fw-bold">Number of Hours:</label>
+                <input type="number" name="userPosition" class="form-control form-control mb-3"  placeholder="How long is the Training" min="1" required />
               </div>
             </div>
 
             <div class="col-md-6">
               <div class="form-group">
-                <label  class="control-label fw-bold">Username:</label>
-                <input type="email" class="form-control form-control mb-3" name="userEmail" required />
+                <label  class="control-label fw-bold">Sponsor Agency:</label>
+                <input type="email" class="form-control form-control mb-3" name="userEmail" placeholder="Who Sponsor the Training" required />
+              </div>
+              <div class="form-group mb-3">
+                <label class="control-label fw-bold">Level of Training:</label>
+                <select class="form-select" aria-label="Default select example" name="userDepartment" id="" required >
+                  <option value="Division">Division</option>
+                  <option value="Regional">Regional</option>
+                  <option value="National">National</option>
+                  <option value="International">International</option>
+                </select>
               </div>
               <div class="form-group">
-                <label class="control-label fw-bold">Password:</label>
-                <input type="password" class="form-control form-control mb-3" id="userPass" name="userPass" oninput="checkPasswordMatch()" />
-              </div>
-              <div class="form-group">
-                <label for="" class="control-label fw-bold">Confirm Password:</label>
-                <input type="password" class="form-control form-control" id="userPass2" name="userPass2" oninput="checkPasswordMatch()" />
-                <b>
-                  <span id="passwordMatchMessage" class="mb-3" style="font-size: small; font-weight: bold; "></span>
-                </b>
-              </div>
-              <div class="form-group mb-3 mt-3">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="seePassword" onchange="togglePasswordVisibility()" />
-                  <label class="form-check-label" for="selectAll">Show Password</label>
-                </div>
+                <label class="control-label fw-bold">Training Certificate:</label>
+                <input type="file" name="credential[0][trainingCertificate]" class="trainingCertificate form-control" accept="application/pdf" required>
+                <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
               </div>
             </div>
           </div>

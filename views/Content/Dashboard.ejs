@@ -40,6 +40,7 @@
 
   .news_content {
     padding: 5px 30px;
+    margin-bottom: 50px;
   }
 
   .newsImg img {
@@ -239,46 +240,45 @@
   </div>
 </div>
 
-<% news.forEach((news, i) => { %>
-<div class="col-lg-12 news_content">
-  <div class="card card-outline card-primary">
-    <div class="card-header">
-      <div class="card-tools" style="font-size: 25px;">
-        News no. <%= i + 1 %> <p style="display: none;">ID: <%= news._id %></p>
+<div class="accordion news_content" id="accordionExample">
+  <%
+    // Reverse the order of the news items to apply Last In, First Out (LIFO)
+    const totalNewsItems = news.length;
+    const reversedNews = [...news].reverse(); // Make a copy and reverse it
+    reversedNews.forEach((item, index) => {
+      // The first item in the reversed array should be open by default
+      const isFirst = (index === 0);
+  %>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="heading<%= index %>">
+        <button class="accordion-button <%= isFirst ? '' : 'collapsed' %>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>" aria-expanded="<%= isFirst ? 'true' : 'false' %>" aria-controls="collapse<%= index %>">
+          News no. <%= totalNewsItems - index %>
+          <p style="display: none;">ID: <%= item._id %></p>
+        </button>
+      </h2>
+      <div id="collapse<%= index %>" class="accordion-collapse collapse <%= isFirst ? 'show' : '' %>" aria-labelledby="heading<%= index %>" data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+          <div class="card-body">
+            <div class="news_Title">
+              News Title: <b class="truncate"><%= item.newsTitle %></b>
+            </div>
+            <div class="news_Content">
+              News Content: <b class="truncate"><%= item.newsContent %></b>
+            </div>
+            <div class="news_Content">
+              News Image:
+            </div>
+            <div class="news_img">
+              <span class="con">
+                <img src="/public/news/<%= item.newsImage %>" alt="">
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="card-body">
-      <div class="news_Title">
-        News Title: <b class="truncate"><%= news.newsTitle %></b>
-      </div>
-      <div class="news_Content">
-        News Content: <b class="truncate"><%= news.newsContent %></b>
-      </div>
-      <div class="news_Content">
-        News Image:
-      </div>
-      <div class="news_img">
-        <span class="con">
-          <img src="/public/news/<%= news.newsImage %>" alt="">
-        </span>
-      </div>
-    </div>
-  </div>
+  <% }); %>
 </div>
-<% }); %>
-
-<!-- <div class="col-lg-12 news_content">
-  <div class="card card-outline card-primary">
-    <div class="card-header">
-      <div class="card-tools" style="font-size: 25px;">
-
-      </div>
-    </div>
-    <div class="card-body">
-      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfAkeQtrbk16Z1RqJgnJc1SE0-HWaQTpzfWKn59uV08qve9EA/viewform?embedded=true" width="1000" height="587" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
-    </div>
-  </div>
-</div> -->
 
 
 <!-- FOR REAL TIME UPDATE -->
@@ -288,75 +288,87 @@
 <script>
   const socket = io();
 
-  // Initialize with the count from the initial loop
-  let newsCount = "<%= news.length %>";
+  // Current count of news items
+  let newsCount = "<%= totalNewsItems %>"; // Updated for the reversed array
 
   socket.on("newNews", (news) => {
-    // Increment the news count
+    // Increment the news count to maintain unique numbering
     newsCount++;
 
-    // Create a new container div for the news item
-    const newNewsContainer = document.createElement("div");
-    newNewsContainer.classList.add("col-lg-12", "news_content");
+    // Create a new accordion item for the news
+    const newAccordionItem = document.createElement("div");
+    newAccordionItem.classList.add("accordion-item");
 
-    // Set the inner HTML for the new news item
-    newNewsContainer.innerHTML = `
-      <div class="card card-outline card-primary">
-        <div class="card-header">
-          <div class="card-tools" style="font-size: 25px;">
-            <i class="fa-regular fa-bell fa-bounce" style="color: #009879;"></i>
-            News no. ${newsCount} <p style="display: none;">ID: ${news._id}</p>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="news_Title">
-            News Title: <b class="truncate">${news.newsTitle}</b>
-          </div>
-          <div class="news_Content">
-            News Content: <b class="truncate">${news.newsContent}</b>
-          </div>
-          <div class="news_Content">News Image:</div>
-          <div class="news_img">
-            <span class="con">
-              <img src="/public/news/${news.newsImage}" alt="" />
-            </span>
+    // Set the inner HTML for the new accordion item
+    newAccordionItem.innerHTML = `
+      <h2 class="accordion-header" id="heading${newsCount}">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${newsCount}" aria-expanded="true" aria-controls="collapse${newsCount}">
+          <i class="fa-regular fa-bell fa-bounce" style="color: #009879;"></i> &nbsp;
+          News no. ${newsCount} <p style="display: none;">ID: ${news._id}</p>
+        </button>
+      </h2>
+      <div id="collapse${newsCount}" class="accordion-collapse collapse show" aria-labelledby="heading${newsCount}" data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+          <div class="card-body">
+            <div class="news_Title">
+              News Title: <b class="truncate">${news.newsTitle}</b>
+            </div>
+            <div class="news_Content">
+              News Content: <b class="truncate">${news.newsContent}</b>
+            </div>
+            <div class="news_Content">News Image:</div>
+            <div class="news_img">
+              <span class="con">
+                <img src="/public/news/${news.newsImage}" alt="" />
+              </span>
+            </div>
           </div>
         </div>
       </div>
     `;
 
-    // Append the new news item container to the container with id "socketTest"
-    document.getElementById("socketTest").appendChild(newNewsContainer);
+    // Insert the new item at the top of the accordion
+    const accordion = document.getElementById("accordionExample");
+    accordion.insertBefore(newAccordionItem, accordion.firstChild);
+
+    // Collapse other accordion items
+    const accordionItems = accordion.querySelectorAll('.accordion-item');
+    accordionItems.forEach((item, index) => {
+      if (index > 0) {
+        const collapseDiv = item.querySelector('.accordion-collapse');
+        collapseDiv.classList.remove("show");
+      }
+    });
   });
 </script>
 
-
 <!-- FOR REAL TIME DELETE -->
 <script>
-  document.addEventListener("DOMContentLoaded", async function() {
-    const socket = io("http://localhost:8000");
+document.addEventListener("DOMContentLoaded", async function() {
+  const socket = io("http://localhost:8000");
 
-    // Listen for the newsDeleted event
-    socket.on("newsDeleted", (data) => {
-      console.log("Received newsDeleted event:", data);
+  // Listen for the newsDeleted event
+  socket.on("newsDeleted", (data) => {
+    console.log("Received newsDeleted event:", data);
 
-      const {
-        newsID
-      } = data;
+    const { newsID } = data;
 
-      // Find and remove the corresponding news item from the user's dashboard
-      const newsItems = document.querySelectorAll('.news_content'); // Assuming each news item has the class 'news_content'
+    // Find and remove the corresponding news item from the accordion
+    const newsItems = document.querySelectorAll('.accordion-item'); // Loop through accordion items
 
-      newsItems.forEach((newsItem) => {
-        const newsItemID = newsItem.querySelector('.card-tools').textContent.match(/ID: (.+)/)[1];
+    newsItems.forEach((newsItem) => {
+      // Extract the hidden news ID to identify the correct item
+      const hiddenIDElement = newsItem.querySelector("p");
+      const extractedID = hiddenIDElement.textContent.match(/ID: (.+)/)[1];
 
-        if (newsItemID === newsID) {
-          console.log("Removing news item:", newsItem);
-          newsItem.remove();
-        }
-      });
+      if (extractedID === newsID) {
+        console.log("Removing news item with ID:", newsID);
+        newsItem.remove(); // Remove the news item from the accordion
+      }
     });
   });
+});
+
 </script>
 
 <script>

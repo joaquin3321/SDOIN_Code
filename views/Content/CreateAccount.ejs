@@ -37,13 +37,28 @@
               <select class="form-select" aria-label="Default select example" name="userSchool" required>
                 <option disabled selected hidden>--Select School--</option>
                 <% userSchoolList.forEach(school => { %>
-                  <option value="<%= school._id %>"><%= school.SchoolName %></option>
+                <option value="<%= school._id %>"><%= school.SchoolName %></option>
                 <% }); %>
               </select>
             </div>
             <div class="form-group">
               <label for="" class="control-label fw-bold">Position:</label>
-              <input type="text" name="userPosition" class="form-control form-control mb-3" style="text-transform: capitalize;" required placeholder="e.g. Teacher 1"/>
+              <input type="text" name="userPosition" class="form-control form-control mb-3" style="text-transform: capitalize;" required placeholder="e.g. Teacher 1" />
+            </div>
+            <div class="form-group mb-3">
+              <label class="control-label fw-bold">Department:</label>
+              <select class="form-select" aria-label="Default select example" name="userDepartment" required>
+                <option disabled selected hidden>--Select Department--</option>
+                <option value="Science">Science</option>
+                <option value="TLE">TLE</option>
+                <option value="AP">AP</option>
+                <option value="Filipino">Filipino</option>
+                <option value="English">English</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Values Education">Values Education</option>
+                <option value="Mapeh">Mapeh</option>
+                <option value="Administration & Facilities Staff">Administration & Facilities Staff</option>
+              </select>
             </div>
             <div class="form-group mb-3">
               <select class="form-select" aria-label="Default select example" name="userType" id="userType" required>

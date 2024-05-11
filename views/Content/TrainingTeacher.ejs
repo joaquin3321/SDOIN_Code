@@ -1,6 +1,8 @@
 <%- include('../ui/sidebar2.ejs') %>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.2/css/dataTables.dateTime.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.2/css/responsive.bootstrap5.css">
 
 <title>Teacher's Training</title>
 <style>
@@ -55,6 +57,7 @@
     // Initialize DataTable
     var table = $("#SchoolTable").DataTable({
       order: [0, 'desc'],
+      // responsive: true,
       pageLength: 5,
       dom: 'lfrtip',
       buttons: [{
@@ -111,7 +114,7 @@
         [5, 10, 25, 50, "All"]
       ],
       columnDefs: [{
-          targets: [0, 1],
+          targets: [0],
           searchable: false
         }, // Enable searching for the 4th column (Trainings Attended & Certificate)
       ],
@@ -124,6 +127,11 @@
       table.button('.custom-excel-button').trigger();
     });
 
+    function normalizeDate(date) {
+      // Returns a new Date object set to midnight
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
     DataTable.ext.search.push(function(settings, data, dataIndex) {
       var min = minDate.val();
       var max = maxDate.val();
@@ -131,24 +139,46 @@
       // Normalize dates to remove time component
       var normalizedMin = min ? normalizeDate(new Date(min)) : null;
       var normalizedMax = max ? normalizeDate(new Date(max)) : null;
-      var startDate = normalizeDate(new Date(data[4])); // Assuming column 4 is the start date
-      var endDate = normalizeDate(new Date(data[5])); // Assuming column 5 is the end date
+      // var startDate = normalizeDate(new Date(data[3]));
+      // var endDate = normalizeDate(new Date(data[4]));
 
-      console.log(data[4])
+      let column3 = data[3];
+      let cleanedData3 = column3.trim();
+      let splitData3 = cleanedData3.split(/\s{2,}/);
 
-      console.log("Normalized Start Date:", startDate);
+      let FinalColumn3 = splitData3.map((item) => {
+        return normalizeDate(new Date(item));
+      })
+
+      let column4 = data[4];
+      let cleanedData4 = column4.trim();
+      let splitData4 = cleanedData4.split(/\s{2,}/);
+      let FinalColumn4 = splitData4.map((item) => {
+        return normalizeDate(new Date(item));
+      })
+
+      const startDate = FinalColumn3.find((eyy) => eyy.getTime() <= normalizedMin.getTime());
+
+      // const startDate = FinalColumn3.find(eyy => eyy.getTime() <= normalizedMin.getTime());
+      const endDate = FinalColumn4.find((eyy) => eyy && normalizedMax && eyy.getTime() <= normalizedMax.getTime());
+
+      console.log("Start Date:", startDate);
+      console.log("End Date:", endDate);
 
       if (
         (normalizedMin === null && normalizedMax === null) ||
-        (normalizedMin === null && normalizedMax && endDate <= normalizedMax) ||
-        (normalizedMin && normalizedMin <= startDate && normalizedMax === null) ||
-        (normalizedMin && normalizedMin <= startDate && startDate <= normalizedMax)
+        (normalizedMin === null && normalizedMax && endDate && endDate.getTime() <= normalizedMax.getTime()) ||
+        (startDate && normalizedMin.getTime() <= startDate.getTime() && normalizedMax === null) ||
+        (startDate && normalizedMin.getTime() <= startDate.getTime() && normalizedMax && startDate.getTime() <= normalizedMax.getTime())
       ) {
         return true;
+      } else {
+        return false;
       }
 
-      return false;
+
     });
+
     // Create date inputs
     minDate = new DateTime('#start_date', {
       format: 'MMMM DD YYYY'
@@ -160,11 +190,6 @@
     $('#start_date, #end_date').on('change', function() {
       table.draw();
     });
-
-    function normalizeDate(date) {
-      // Returns a new Date object set to midnight
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
 
     $('#myInput').on('keyup', function() {
       var searchText = this.value;
@@ -200,293 +225,247 @@
     <div class="card-header">
       <div class="card-tools">
         <% if(user.userType == "School Head"){ %>
-        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#Add_Training"><i class="fa-solid fa-plus"></i> Add Training for Teachers</a>
+        <a href="/AddTeachersTraining" class="btn btn-block btn-sm btn-default btn-flat border-primary"><i class="fa-solid fa-plus"></i> Add Training for Teachers</a>
         <% } %>
       </div>
     </div>
     <div class="card-body" style="overflow-x: auto; overflow-y: auto;">
       <% if( user.userType == "Admin" || user.userType == "School Head"){ %>
       <div id="ForSchool" class="ForSchool mb-3">
-        <table class="table-hover styled-table table table-bordered " id="SchoolTable">
-          <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
-            Teacher's Trainings Attended List
-          </h3>
-          <%- include('../partials/messages.ejs')%>
+        <div>
+          <table class="table-hover styled-table table table-bordered nowrap" id="SchoolTable" style="width:100%">
+            <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+              Teacher's Trainings Attended List
+            </h3>
+            <%- include('../partials/messages.ejs')%>
 
-          <div id="list_filter" class="dataTables_filter" style="display: flex; justify-content: flex-end;">
-            <input type="search" class="form-control form-control-sm" id="myInput" placeholder="Search Here" aria-controls="list" />
-          </div>
-          <div class="form-check form-switch" style="display: flex; justify-content: flex-end;">
-            <input class="form-check-input" type="checkbox" id="notAttendedCheckbox">
-            <label class="form-check-label" for="notAttendedCheckbox">&nbspDidn't Attend</label>
-          </div>
+            <div id="list_filter" class="dataTables_filter" style="display: flex; justify-content: flex-end;">
+              <input type="search" class="form-control form-control-sm" id="myInput" placeholder="Search Here" aria-controls="list" />
+            </div>
+            <div class="form-check form-switch" style="display: flex; justify-content: flex-end;">
+              <input class="form-check-input" type="checkbox" id="notAttendedCheckbox">
+              <label class="form-check-label" for="notAttendedCheckbox">&nbspDidn't Attend</label>
+            </div>
 
-          <div class="row mb-3">
-            <div class="col-12">
-              <div class="row">
-                <div class="col-6">
-                  <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text btn btn-primary text-white" id="basic-addon1"><i class="fas fa-calendar-alt"></i></span>
+            <div class="row mb-3">
+              <div class="col-12">
+                <div class="row">
+                  <div class="col-6">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text btn btn-primary text-white" id="basic-addon1"><i class="fas fa-calendar-alt"></i></span>
+                      </div>
+                      <input type="text" class="form-control" id="start_date" placeholder="Start Date" readonly>
                     </div>
-                    <input type="text" class="form-control" id="start_date" placeholder="Start Date" readonly>
+                  </div>
+                  <div class="col-6">
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text btn btn-primary text-white" id="basic-addon1"><i class="fas fa-calendar-alt"></i></span>
+                      </div>
+                      <input type="text" class="form-control" id="end_date" placeholder="End Date" readonly>
+                    </div>
                   </div>
                 </div>
-                <div class="col-6">
-                  <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text btn btn-primary text-white" id="basic-addon1"><i class="fas fa-calendar-alt"></i></span>
-                    </div>
-                    <input type="text" class="form-control" id="end_date" placeholder="End Date" readonly>
-                  </div>
+                <div>
+                  <a href="/TeachersTraining"><button class="btn btn-warning" style="float: right;">Reset</button></a>
                 </div>
-              </div>
-              <div>
-                <a href="/TeachersTraining"><button class="btn btn-warning" style="float: right;">Reset</button></a>
               </div>
             </div>
-          </div>
 
-          <button id="exportPdfButton" class="custom-pdf-button btn btn-success mb-3" style="float: right; margin-left: 10px;"><i class="fa-solid fa-file-pdf"></i> Generate PDF Report</button>
-          <button id="exportExlButton" class="custom-excel-button btn btn-success mb-3" style="float: right;"><i class="fa-solid fa-file-excel"></i> Generate Excel Report</button>
+            <button id="exportPdfButton" class="custom-pdf-button btn btn-success mb-3" style="float: right; margin-left: 10px;"><i class="fa-solid fa-file-pdf"></i> Generate PDF Report</button>
+            <button id="exportExlButton" class="custom-excel-button btn btn-success mb-3" style="float: right;"><i class="fa-solid fa-file-excel"></i> Generate Excel Report</button>
 
-          <thead class="table-info">
-            <tr>
-              <th width="5%" class="text-center">#</th>
-              <th width="5%" class="text-center">Picture</th>
-              <th>Name</th>
-              <th>Position</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Trainings Attended & Certificate</th>
-              <% if( user.userType == "Admin" ){%>
-              <th>School</th>
-              <% } %>
-              <% if( user.userType == "School Head" ){%>
-              <th style="text-align: center;" width="8%">Action</th>
-              <% } %>
-            </tr>
-          </thead>
-          <tbody>
-            <% let countSameSchool = 0; let countAdmin = 0;
-            attendedSH.forEach((attended, index ) => { %> <% if
-              (attended.userSchool === SameSchool && attended.attendedID !== SchoolHeadID && attended.userSchool !== "Schools Division of Ilocos Norte"){ countSameSchool++; %>
-            <tr>
-              <td width="5%" class="text-center">
-                <b><%= countSameSchool %></b>
-              </td>
-              <td width="5%" class="text-center">
-                <% if(attended.userProfile === null || attended.userProfile === ""){ %>
-                <span class="profile">
-                  <img src="/public/img/DefaultProfile.jpg" alt="">
-                </span>
-                <% } else{  %>
-                <span class="profile">
-                  <img src="/public/img/<%= attended.userProfile %>" alt="">
-                </span>
+
+            <thead class="table-info">
+              <tr>
+                <th width="5%" class="text-center">#</th>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Hours</th>
+                <th>Level</th>
+                <th>Trainings Attended & Certificate</th>
+                <% if( user.userType == "Admin" ){%>
+                <th>School</th>
                 <% } %>
-              </td>
-              <td style="text-align: center;">
-                <b><%= attended.userName %></b>
-              </td>
-              <td><%= attended.userPosition %></td>
-              <td>
-                <% attended.credential.forEach((credential, index) => { %>
-                <% const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
-                <%= trainingStart %>
-
-                <% if (index < attended.credential.length - 1) { %>
-                <hr> <!-- Add horizontal line after each iteration except the last one -->
+                <% if( user.userType == "School Head" ){%>
+                <th style="text-align: center;" width="8%">Action</th>
                 <% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% let countSameSchool = 0; let countAdmin = 0;
+                attendedSH.forEach((attended, index ) => { %> <% if
+                  (attended.userSchool === SameSchool && attended.attendedID !== SchoolHeadID && attended.userSchool !== "Schools Division of Ilocos Norte"){ countSameSchool++; %>
+              <tr>
+                <td width="5%" class="text-center">
+                  <b><%= countSameSchool %></b>
+                </td>
+                <td style="text-align: center;" style="width: 10px;">
+                  <b><%= attended.userName %></b>
+                </td>
+                <td style="width: 10px;"><%= attended.userPosition %></td>
+                <td>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <% const trainingStart = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                  <%= trainingStart %>
 
-                <% }) %>
-              </td>
-              <td>
-                <% attended.credential.forEach((credential, index) => { %>
-                <% const trainingEnd = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
-                <%= trainingEnd %></b>
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
 
-                <% if (index < attended.credential.length - 1) { %>
-                <hr> <!-- Add horizontal line after each iteration except the last one -->
-                <% } %>
+                  <% }) %>
+                </td>
+                <td>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <% const trainingEnd = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                  <%= trainingEnd %></b>
 
-                <% }) %>
-              </td>
-              <td>
-                <% if (attended.credential.length === 0){%>
-                <span class="text-muted">The User Probably Deleted All its training </span>
-                <% } %>
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
 
-                <% attended.credential.forEach((credential, index) => { %>
-                <% if (credential.trainingCertificate) { %>
-                <b class="truncate">
-                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
-                    <i class="fa-solid fa-file-pdf"></i> <%= credential.trainingTitle %>
-                  </a>
-                </b>
-                <% } else { %>
-                <b class="truncate">
-                  <span class="form-control btn btn-secondary"><%= credential.trainingTitle %></span>
-                </b>
-                <% } %>
-                <% if (index < attended.credential.length - 1) { %>
-                <hr> <!-- Add horizontal line after each iteration except the last one -->
-                <% } %>
-                <% }) %>
-              </td>
+                  <% }) %>
+                </td>
+                <td>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <%= credential.trainingHours %> Hours
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
+                  <% }) %>
+                </td>
+                <td>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <%= credential.trainingLevel %>
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
+                  <% }) %>
+                </td>
+                <td>
+                  <% if (attended.credential.length === 0){%>
+                  <span class="text-muted">The User Probably Deleted All its training </span>
+                  <% } %>
 
-              <td style="text-align: center;" width="8%">
-                <% if( user.userType == "School Head"){ %>
-                <% if (attended.credential.length === 0){%>
-                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
-                  <a class="btn btn-outline-danger schoolhead_action" data-bs-toggle="modal" data-bs-target="#DeleteAttendedSH" data-attended-id="<%= attended._id %>">
-                    <i class="fa-solid fa-trash"></i>
-                  </a>
-                </div>
-                <% } else{ %>
-                <b class="truncate">Not Applicable</b>
-                <% } %>
-                <% }else { %>
-                <b class="truncate">Not Applicable</b>
-                <% } %>
-              </td>
-            </tr>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <% if (credential.trainingCertificate) { %>
+                  <b class="truncate">
+                    <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="btn btn-success">
+                      <i class="fa-solid fa-file-pdf"></i> <%= credential.trainingTitle %>
+                    </a>
+                  </b>
+                  <% } else { %>
+                  <b class="truncate">
+                    <span class="btn btn-secondary"><%= credential.trainingTitle %></span>
+                  </b>
+                  <% } %>
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
+                  <% }) %>
+                </td>
 
-            <% }if( user.userType == "Admin" ){
-            if(attended.userSchool !== SameSchool && attended.attendedID !== SchoolHeadID){ countAdmin++ %>
-            <tr>
-              <td width="5%" class="text-center">
-                <b><%= countAdmin%></b>
-              </td>
-              <td width="5%" class="text-center">
-                <% if(attended.userProfile === null || attended.userProfile === ""){ %>
-                <span class="profile">
-                  <img src="/public/img/DefaultProfile.jpg" alt="">
-                </span>
-                <% } else{  %>
-                <span class="profile">
-                  <img src="/public/img/<%= attended.userProfile %>" alt="">
-                </span>
-                <% } %>
-              </td>
-              <td style="text-align: center;">
-                <b><%= attended.userName %></b>
-              </td>
-              <td><%= attended.userPosition %></td>
-              <td>
-                <% attended.credential.forEach((credential, index) => { %>
-                <% const trainingStart2 = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
-                <%= trainingStart2 %>
+                <td style="text-align: center;" width="8%">
+                  <% if( user.userType == "School Head"){ %>
+                  <% if (attended.credential.length === 0){%>
+                  <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
+                    <a class="btn btn-outline-danger schoolhead_action" data-bs-toggle="modal" data-bs-target="#DeleteAttendedSH" data-attended-id="<%= attended._id %>">
+                      <i class="fa-solid fa-trash"></i>
+                    </a>
+                  </div>
+                  <% } else{ %>
+                  <b class="truncate">Not Applicable</b>
+                  <% } %>
+                  <% }else { %>
+                  <b class="truncate">Not Applicable</b>
+                  <% } %>
+                </td>
+              </tr>
 
-                <% if (index < attended.credential.length - 1) { %>
-                <hr> <!-- Add horizontal line after each iteration except the last one -->
-                <% } %>
+              <% }if( user.userType == "Admin" ){
+                if(attended.userSchool !== SameSchool && attended.attendedID !== SchoolHeadID){ countAdmin++ %>
+              <tr>
+                <td width="5%" class="text-center">
+                  <b><%= countAdmin%></b>
+                </td>
+                <td width="5%" class="text-center">
+                  <% if(attended.userProfile === null || attended.userProfile === ""){ %>
+                  <span class="profile">
+                    <img src="/public/img/DefaultProfile.jpg" alt="">
+                  </span>
+                  <% } else{  %>
+                  <span class="profile">
+                    <img src="/public/img/<%= attended.userProfile %>" alt="">
+                  </span>
+                  <% } %>
+                </td>
+                <td style="text-align: center;">
+                  <b><%= attended.userName %></b>
+                </td>
+                <td><%= attended.userPosition %></td>
+                <td>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <% const trainingStart2 = new Date(credential.trainingStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                  <%= trainingStart2 %>
 
-                <% }) %>
-              </td>
-              <td>
-                <% attended.credential.forEach((credential, index) => { %>
-                <% const trainingEnd2 = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
-                <%= trainingEnd2 %></b>
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
 
-                <% if (index < attended.credential.length - 1) { %>
-                <hr> <!-- Add horizontal line after each iteration except the last one -->
-                <% } %>
+                  <% }) %>
+                </td>
+                <td>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <% const trainingEnd2 = new Date(credential.trainingEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); %>
+                  <%= trainingEnd2 %></b>
 
-                <% }) %>
-              </td>
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
 
-              <td>
-                <% if (attended.credential.length === 0){%>
-                <span class="text-muted">The User Probably Deleted All its training </span>
-                <% } %>
+                  <% }) %>
+                </td>
 
-                <% attended.credential.forEach((credential, index) => { %>
-                <% if (credential.trainingCertificate) { %>
-                <b class="truncate">
-                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
-                    <i class="fa-solid fa-file-pdf"></i> <%= credential.trainingTitle %>
-                  </a>
-                </b>
-                <% } else { %>
-                <b class="truncate">
-                  <span class="form-control btn btn-secondary"><%= credential.trainingTitle %></span>
-                </b>
-                <% } %>
-                <% if (index < attended.credential.length - 1) { %>
-                <hr> <!-- Add horizontal line after each iteration except the last one -->
-                <% } %>
-                <% }) %>
-              </td>
+                <td>
+                  <% if (attended.credential.length === 0){%>
+                  <span class="text-muted">The User Probably Deleted All its training </span>
+                  <% } %>
 
-              <td style="text-align: center;" width="15%">
-                <%= attended.userSchool %>
-              </td>
+                  <% attended.credential.forEach((credential, index) => { %>
+                  <% if (credential.trainingCertificate) { %>
+                  <b class="truncate">
+                    <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success">
+                      <i class="fa-solid fa-file-pdf"></i> <%= credential.trainingTitle %>
+                    </a>
+                  </b>
+                  <% } else { %>
+                  <b class="truncate">
+                    <span class="form-control btn btn-secondary"><%= credential.trainingTitle %></span>
+                  </b>
+                  <% } %>
+                  <% if (index < attended.credential.length - 1) { %>
+                  <hr> <!-- Add horizontal line after each iteration except the last one -->
+                  <% } %>
+                  <% }) %>
+                </td>
 
-            </tr>
+                <td style="text-align: center;" width="15%">
+                  <%= attended.userSchool %>
+                </td>
 
-            <%}}%>
-            <% }); %>
-          </tbody>
-        </table>
+              </tr>
+
+              <%}}%>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <% } %>
-
-    </div>
-  </div>
-</div>
-
-<!-- Add Teachers Training Attended Modal -->
-<div class="modal fade" id="Add_Training" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title" id="staticBackdropLabel">Training Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
-      </div>
-      <div class="modal-body">
-        <form id="trainingForm" action="/users/addTeacherAttended" method="post">
-          <!-- User Info -->
-          <!-- <input type="text" name="attendedID" value="<%= user.attendedID %>" hidden> -->
-
-          <!-- <input type="text" name="userSchool" value="<%= attended.userSchool %>" hidden>
-          <input type="text" name="userProfile" value="<%= attended.userProfile %>" hidden> -->
-
-          <label class="control-label fw-bold">Teachers:</label>
-          <div class="form-check">
-            <% TeacherList.forEach((user, index ) => { %> <% if
-              (user.userSchool === SameSchool && user.attendedID !== SchoolHeadID){%>
-            <!-- Each checkbox and associated hidden fields -->
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="attendedID" value="<%= user.attendedID %>" />
-              <label class="form-check-label"><%= user.userName %></label>
-            </div>
-            <% }; %>
-            <% }); %>
-            <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
-          </div>
-          <!-- Training Credentials -->
-          <div id="credentialContainer">
-            <div class="credentialEntry">
-              <div class="form-group">
-                <label class="control-label fw-bold">Training Title:</label>
-                <input type="text" name="credential[0][trainingTitle]" class="trainingTitle form-control form-control mb-3" placeholder="Tile of the Training" required />
-              </div>
-            </div>
-            <label class="control-label fw-bold">Start/End of the Training:</label>
-            <div class="input-group mb-3">
-              <input type="date" class="form-control" name="credential[0][trainingStart]" required>
-              <span class="input-group-text">@</span>
-              <input type="date" class="form-control" name="credential[0][trainingEnd]" required>
-            </div>
-          </div>
-          <input type="submit" class="btn btn-success form-control" value="Submit">
-
-        </form>
-      </div>
-
 
     </div>
   </div>

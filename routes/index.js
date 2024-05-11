@@ -14,27 +14,27 @@ function socketRouter(io) {
   const router = express.Router();
 
 
-  router.get("/testing", ensureAuthenticated, async (req, res) => {
-    try {
-      const userID = req.user._id; //Unique ID of the user
-      const user = await User.findById(userID, "userSchool").populate('userSchool', 'SchoolName');
-      const SchoolName = { userSchool: user.userSchool ? user.userSchool.SchoolName : null, };
-      const userSchool = await School_List.find({}, "SchoolName");
-      const news = await NewsContent.find(
-        {},
-        "_id newsTitle newsContent newsImage"
-      ); // Fetch user documents and select the 'userDept' field
-      res.render("ui/testing", {
-        user: req.user,
-        userSchool: SchoolName,
-        news: news,
-        userSchoolList: userSchool,
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server Error");
-    }
-  });
+  // router.get("/testing", ensureAuthenticated, async (req, res) => {
+  //   try {
+  //     const userID = req.user._id; //Unique ID of the user
+  //     const user = await User.findById(userID, "userSchool").populate('userSchool', 'SchoolName');
+  //     const SchoolName = { userSchool: user.userSchool ? user.userSchool.SchoolName : null, };
+  //     const userSchool = await School_List.find({}, "SchoolName");
+  //     const news = await NewsContent.find(
+  //       {},
+  //       "_id newsTitle newsContent newsImage"
+  //     ); // Fetch user documents and select the 'userDept' field
+  //     res.render("ui/testing", {
+  //       user: req.user,
+  //       userSchool: SchoolName,
+  //       news: news,
+  //       userSchoolList: userSchool,
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     res.status(500).send("Server Error");
+  //   }
+  // });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -289,6 +289,76 @@ router.get("/TeachersTraining", ensureAuthenticated, async (req, res) => {
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const isSchoolHead = (req, res, next) => {
+  if (req.user && req.user.userType === "School Head") {
+    // User is an admin, proceed to the next middleware or route handler
+    next();
+  } else {
+    // User is not an admin, respond with an error or redirect to an unauthorized page
+    req.flash("error_msg", "Error!! Cannot Access the Site!!");
+    res.redirect("/Dashboard");
+  }
+};
+
+router.get("/AddTeachersTraining", ensureAuthenticated, isSchoolHead, async (req, res) => {
+  try {
+    const userID = req.user._id; //Unique ID of the user
+
+    const user = await User.findById(userID, "userSchool").populate('userSchool', 'SchoolName');
+
+    const SameSchool = {
+      userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+    };
+
+    const attendedID = req.user.attendedID; // Attended Id of the user who will Logged In
+    const SchoolHeadID = req.user.attendedID; // The Attended ID of the School Head will be used to filter out the list of Attended List
+
+    const TeachersData = await User.find( {},
+      "_id userName userSchool userProfile attendedID"
+      ).populate('userSchool', 'SchoolName')
+      const TeachersDataList = TeachersData.map(user => ({
+        ...user.toObject(),
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      }));
+
+    const attendedSH = await TrainingsAttended.find( {},
+      "_id userName userSchool userProfile userPosition attendedID credential trainingTitle trainingCertificate trainingStart trainingEnd"
+      ).populate('userSchool', 'SchoolName')
+
+      const attendedSHList = attendedSH.map(user => ({
+        ...user.toObject(),
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      }));
+
+    const attended = await TrainingsAttended.find({ attendedID },
+      "_id userName userSchool userProfile userPosition attendedID credential trainingTitle trainingCertificate trainingStart trainingEnd")
+      .populate('userSchool', 'SchoolName').exec();
+
+      const attendedList = attended.map(user => ({
+        ...user.toObject(),
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      }));
+      const userSchool = await School_List.find({}, "SchoolName");
+
+    res.render("Content/AddTeachersTraining", {
+      user: req.user,
+      userSchool: SameSchool,
+      attended: attendedList,
+      attendedSH: attendedSHList,
+      SameSchool: SameSchool.userSchool,
+      SchoolHeadID: SchoolHeadID,
+      TeacherList: TeachersDataList,
+      userSchoolList: userSchool,
+
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
+
 
 router.get("/PersonalTraining", ensureAuthenticated, async (req, res) => {
   try {

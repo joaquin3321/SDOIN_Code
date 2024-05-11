@@ -15,9 +15,13 @@ const Training_Attended = new mongoose.Schema({
     type: String,
     required: true,
   },
-  userProfile: {
+  userDepartment: {
     type: String,
-    default: null,
+    required: true,
+  },
+  userEmail: {
+    type: String,
+    required: true,
   },
   credential: [
     {

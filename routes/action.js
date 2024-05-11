@@ -40,7 +40,6 @@ function socketRouter(io) {
       const userID = req.params.userID;
       const attendedID = req.user.attendedID;
       const updateData = req.body;
-      console.log(updateData)
 
       // Check if a file is included in the request
       if (req.file) {
@@ -67,10 +66,11 @@ function socketRouter(io) {
         { attendedID: attendedID },
         {
           $set: {
-            userProfile: updateData.userProfile,
             userName: updateData.userName,
             userPosition: updateData.userPosition,
             userSchool: updateData.userSchool,
+            userDepartment: updateData.userDepartment,
+            userEmail: updateData.userEmail,
           }
         }
       );

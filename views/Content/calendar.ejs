@@ -85,10 +85,13 @@
   </div>
 </div>
 <% }%>
-
+<!-- <div id="" style="margin: 80px auto;"><select id="yearPicker"></select></div> -->
 <div class="container">
   <div id="calendar"></div>
 </div>
+
+
+
 
 <!-- Create Event Modal -->
 <% if( user.userType == "Admin"){ %>
@@ -212,15 +215,17 @@
   document.addEventListener("DOMContentLoaded", function() {
     const calendarEl = document.getElementById("calendar");
     const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: "dayGridMonth",
+      initialView: "listWeek",
       headerToolbar: {
-        right: "dayGridWeek,dayGridMonth,listDay today prev,next"
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,listDay,listWeek'
       },
       buttonText: {
         dayGridWeek: "Week",
         dayGridMonth: "Month",
         listDay: "Day",
-        listWeek: "Week",
+        listWeek: "Week List",
       },
       selectable: true,
       events: [], // Initialize with an empty array of events
@@ -253,6 +258,18 @@
         openViewEventModal();
       },
     });
+
+    // var yearPicker = document.getElementById('yearPicker');
+    // for (var i = 2024; i <= 2500; i++) {
+    //   var option = document.createElement('option');
+    //   option.value = i;
+    //   option.text = i;
+    //   yearPicker.appendChild(option);
+    // }
+    // yearPicker.addEventListener('change', function() {
+    //   calendar.gotoDate(new Date(this.value, 0, 1)); // Go to the first day of the selected year
+    // });
+
 
     // Fetch events from the server
     fetch("/action/events")

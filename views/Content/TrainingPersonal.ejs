@@ -39,10 +39,13 @@
   .profile img {
     height: 60px;
   }
+
   #DividerForInput {
-  border-top: 5px solid #000000; /* You can adjust the color as needed */
-}
-#PersonalTable_filter {
+    border-top: 5px solid #000000;
+    /* You can adjust the color as needed */
+  }
+
+  #PersonalTable_filter {
     display: none;
   }
 </style>
@@ -53,6 +56,7 @@
     // Initialize DataTable
     var table = $("#PersonalTable").DataTable({
       order: [0, 'desc'],
+      // responsive: true,
       pageLength: 5,
       dom: 'lfrtip',
       buttons: [{
@@ -82,7 +86,7 @@
     });
 
     $('#myInput').on('keyup', function() {
-        table.search(this.value).draw(); // Trigger the search
+      table.search(this.value).draw(); // Trigger the search
     });
 
   });
@@ -97,7 +101,7 @@
     </div>
     <div class="card-body" style="overflow-x: auto; overflow-y: auto;">
       <div id="Personal" class="Personal">
-        <table class="table-hover styled-table table table-bordered" id="PersonalTable">
+        <table class="table-hover styled-table table table-bordered nowrap" id="PersonalTable" style="width:100%">
           <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
             Personal Trainings Attended List
           </h3>
@@ -149,9 +153,9 @@
               <td>
                 <% if (credential.trainingCertificate) { %>
                 <b class="truncate">
-                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success btn-sm">
+                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="btn btn-success btn-sm">
                     <!-- <i class="fa-solid fa-file-pdf"></i>  -->
-                    Training Level
+                    View Certificate
                   </a>
                 </b>
                 <% } else { %>
@@ -193,22 +197,25 @@
       <div class="modal-body">
         <form id="trainingForm" action="/users/addTrainingAttended" method="post" enctype="multipart/form-data">
           <!-- User Info -->
-          <input type="text" name="attendedID" value="<%= user.attendedID %>" hidden>
-          <input type="text" name="userName" value="<%= user.userName %>" hidden>
-          <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
-          <input type="text" name="userPosition" value="<%= user.userPosition %>" hidden>
-          <input type="text" name="userProfile" value="<%= user.userProfile %>" hidden>
+          <div>
+            <input type="text" name="attendedID" value="<%= user.attendedID %>" hidden>
+            <input type="text" name="userName" value="<%= user.userName %>" hidden>
+            <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
+            <input type="text" name="userPosition" value="<%= user.userPosition %>" hidden>
+            <input type="text" name="userDepartment" value="<%= user.userDepartment %>" hidden>
+            <input type="text" name="userEmail" value="<%= user.userEmail %>" hidden>
+          </div>
 
           <div class="row">
             <!-- <b class="text-muted">User's Information</b>
             <hr /> -->
             <div class="col-md-6 border-right">
               <div class="form-group">
-                <label  class="control-label fw-bold">Title of the Training:</label>
+                <label class="control-label fw-bold">Title of the Training:</label>
                 <input type="text" name="credential[0][trainingTitle]" class="form-control form-control mb-3" placeholder="What is the title of the training" required />
               </div>
               <div class="form-group">
-                <label  class="control-label fw-bold">Start Date of the Training:</label>
+                <label class="control-label fw-bold">Start Date of the Training:</label>
                 <input type="date" name="credential[0][trainingStart]" class="form-control form-control mb-3" required />
               </div>
               <div class="form-group">
@@ -220,15 +227,15 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label class="control-label fw-bold">Number of Hours:</label>
-                <input type="number" name="credential[0][trainingHours]" class="form-control form-control mb-3"  placeholder="How long is the Training" min="1" required />
+                <input type="number" name="credential[0][trainingHours]" class="form-control form-control mb-3" placeholder="How long is the Training" min="1" required />
               </div>
               <div class="form-group">
-                <label  class="control-label fw-bold">Sponsor Agency:</label>
+                <label class="control-label fw-bold">Sponsor Agency:</label>
                 <input type="text" class="form-control form-control mb-3" name="credential[0][trainingSponsor]" placeholder="Who Sponsor the Training" required />
               </div>
               <div class="form-group">
-                <label  class="control-label fw-bold">Level of Training:</label>
-                <select class="form-select" aria-label="Default select example" name="credential[0][trainingLevel]" id="" required >
+                <label class="control-label fw-bold">Level of Training:</label>
+                <select class="form-select" aria-label="Default select example" name="credential[0][trainingLevel]" id="" required>
                   <option value="Division">Division</option>
                   <option value="Regional">Regional</option>
                   <option value="National">National</option>
@@ -241,7 +248,7 @@
               <input type="file" name="credential[0][trainingCertificate]" class="trainingCertificate form-control" accept="application/pdf" required>
             </div>
           </div>
-<!--
+          <!--
           <button type="button" class="btn btn-primary mb-1 mt-3 form-control" id="addCredential">Additional Training</button>
           <br> -->
           <input type="submit" class="btn btn-success form-control" value="Submit">
@@ -464,111 +471,111 @@
 </script>
 
 <!-- Handles Adding New Input Training Attended For Personal Only -->
-<script>
+<!-- <script>
   let credentialCount = 1; // Initialize the count for the next credential
 
   // Function to add a new credential entry
   function addNewCredential() {
-      const container = document.getElementById('credentialContainer');
-      const breakEnd = document.createElement('br');
-      const breakLine = document.createElement('hr');
-      breakLine.id ='DividerForInput';
+    const container = document.getElementById('credentialContainer');
+    const breakEnd = document.createElement('br');
+    const breakLine = document.createElement('hr');
+    breakLine.id = 'DividerForInput';
 
-      // Create a new credential entry
-      const newEntry = document.createElement('div');
-      newEntry.className = 'credentialEntry';
+    // Create a new credential entry
+    const newEntry = document.createElement('div');
+    newEntry.className = 'credentialEntry';
 
-      // Create input fields with incremented indices
-      const titleInput = document.createElement('input');
-      titleInput.type = 'text';
-      titleInput.name = `credential[${credentialCount}][trainingTitle]`;
-      titleInput.className = 'trainingTitle form-control form-control mb-3';
-      titleInput.placeholder = 'Title of the Training';
-      titleInput.required = true;
+    // Create input fields with incremented indices
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.name = `credential[${credentialCount}][trainingTitle]`;
+    titleInput.className = 'trainingTitle form-control form-control mb-3';
+    titleInput.placeholder = 'Title of the Training';
+    titleInput.required = true;
 
-      const certificateInput = document.createElement('input');
-      certificateInput.type = 'file';
-      certificateInput.accept = 'application/pdf';
-      certificateInput.name = `credential[${credentialCount}][trainingCertificate]`;
-      certificateInput.className = 'trainingCertificate form-control';
-      certificateInput.required = true;
+    const certificateInput = document.createElement('input');
+    certificateInput.type = 'file';
+    certificateInput.accept = 'application/pdf';
+    certificateInput.name = `credential[${credentialCount}][trainingCertificate]`;
+    certificateInput.className = 'trainingCertificate form-control';
+    certificateInput.required = true;
 
-      const startDateInput = document.createElement('input');
-      startDateInput.type = 'date';
-      startDateInput.className = 'form-control';
-      startDateInput.name = `credential[${credentialCount}][trainingStart]`;
-      startDateInput.required = true;
+    const startDateInput = document.createElement('input');
+    startDateInput.type = 'date';
+    startDateInput.className = 'form-control';
+    startDateInput.name = `credential[${credentialCount}][trainingStart]`;
+    startDateInput.required = true;
 
-      const endDateInput = document.createElement('input');
-      endDateInput.type = 'date';
-      endDateInput.className = 'form-control';
-      endDateInput.name = `credential[${credentialCount}][trainingEnd]`;
-      endDateInput.required = true;
+    const endDateInput = document.createElement('input');
+    endDateInput.type = 'date';
+    endDateInput.className = 'form-control';
+    endDateInput.name = `credential[${credentialCount}][trainingEnd]`;
+    endDateInput.required = true;
 
-      // Append input fields to the new entry
-      const titleLabel = document.createElement('label');
-      titleLabel.className = 'control-label fw-bold mt-3';
-      titleLabel.appendChild(document.createTextNode(`Training Title: (${credentialCount})`));
-      newEntry.appendChild(titleLabel);
-      newEntry.appendChild(titleInput);
+    // Append input fields to the new entry
+    const titleLabel = document.createElement('label');
+    titleLabel.className = 'control-label fw-bold mt-3';
+    titleLabel.appendChild(document.createTextNode(`Training Title: (${credentialCount})`));
+    newEntry.appendChild(titleLabel);
+    newEntry.appendChild(titleInput);
 
-      const certificateLabel = document.createElement('label');
-      certificateLabel.className = 'control-label fw-bold';
+    const certificateLabel = document.createElement('label');
+    certificateLabel.className = 'control-label fw-bold';
 
-      const spanner = document.createElement('span');
-      spanner.style = 'font-size: small; font-weight: bold; color: red;';
-      spanner.appendChild(document.createTextNode('*It only accepts PDF Files '));
+    const spanner = document.createElement('span');
+    spanner.style = 'font-size: small; font-weight: bold; color: red;';
+    spanner.appendChild(document.createTextNode('*It only accepts PDF Files '));
 
-      certificateLabel.appendChild(document.createTextNode(`Training Certificate: (${credentialCount})`));
-      newEntry.appendChild(certificateLabel);
-      newEntry.appendChild(certificateInput);
-      newEntry.appendChild(spanner);
-      newEntry.appendChild(breakEnd);
-
-
-      // Append Start/End date inputs
-      const dateLabel = document.createElement('label');
-      dateLabel.className = 'control-label fw-bold mt-3';
-      dateLabel.appendChild(document.createTextNode(`Start/End of the Training: (${credentialCount})`));
-      newEntry.appendChild(dateLabel);
+    certificateLabel.appendChild(document.createTextNode(`Training Certificate: (${credentialCount})`));
+    newEntry.appendChild(certificateLabel);
+    newEntry.appendChild(certificateInput);
+    newEntry.appendChild(spanner);
+    newEntry.appendChild(breakEnd);
 
 
-      const dateInputGroup = document.createElement('div');
-      dateInputGroup.className = 'input-group mb-3';
-      dateInputGroup.appendChild(startDateInput);
-      dateInputGroup.innerHTML += '<span class="input-group-text">@</span>';
-      dateInputGroup.appendChild(endDateInput);
-      newEntry.appendChild(dateInputGroup);
-
-      // Append a "Remove" button
-      const removeButton = document.createElement('button');
-      removeButton.type = 'button';
-      removeButton.className = 'btn btn-danger btn-sm mt-1';
-      removeButton.appendChild(document.createTextNode('Remove'));
-      removeButton.onclick = function () {
-          removeCredential(newEntry);
-      };
-      newEntry.appendChild(removeButton);
-      newEntry.appendChild(breakLine);
+    // Append Start/End date inputs
+    const dateLabel = document.createElement('label');
+    dateLabel.className = 'control-label fw-bold mt-3';
+    dateLabel.appendChild(document.createTextNode(`Start/End of the Training: (${credentialCount})`));
+    newEntry.appendChild(dateLabel);
 
 
-      // Append the new entry to the container
-      container.appendChild(newEntry);
+    const dateInputGroup = document.createElement('div');
+    dateInputGroup.className = 'input-group mb-3';
+    dateInputGroup.appendChild(startDateInput);
+    dateInputGroup.innerHTML += '<span class="input-group-text">@</span>';
+    dateInputGroup.appendChild(endDateInput);
+    newEntry.appendChild(dateInputGroup);
 
-      // Increment the credential count
-      credentialCount++;
+    // Append a "Remove" button
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn btn-danger btn-sm mt-1';
+    removeButton.appendChild(document.createTextNode('Remove'));
+    removeButton.onclick = function() {
+      removeCredential(newEntry);
+    };
+    newEntry.appendChild(removeButton);
+    newEntry.appendChild(breakLine);
+
+
+    // Append the new entry to the container
+    container.appendChild(newEntry);
+
+    // Increment the credential count
+    credentialCount++;
   }
 
   // Function to remove a credential entry
   function removeCredential(entry) {
-      const container = document.getElementById('credentialContainer');
-      container.removeChild(entry);
-      credentialCount--;
+    const container = document.getElementById('credentialContainer');
+    container.removeChild(entry);
+    credentialCount--;
   }
 
   // Add event listener to the "Add Training" button
   const addButton = document.getElementById('addCredential');
   addButton.addEventListener('click', addNewCredential);
-</script>
+</script> -->
 
 <%- include('../ui/footer2.ejs') %>

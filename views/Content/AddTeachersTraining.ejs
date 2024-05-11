@@ -1,0 +1,95 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>Add Teacher's Training</title>
+
+<style>
+  .news_list {
+    padding: 60px 30px;
+    margin-top: 10px;
+    margin-bottom: -50px;
+  }
+  .large-checkbox {
+    transform: scale(1.5); /* Increase the checkbox size */
+    margin-right: 10px; /* Add a bit of spacing */
+    margin-top: 10px;
+  }
+  .larger-font {
+    font-size: 1.5em;
+  }
+</style>
+
+
+<div class="col-lg-12 news_list">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <!-- <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#news_content"><i class="fa-solid fa-plus"></i> Add News</a> -->
+      </div>
+    </div>
+    <div class="card-body" style="max-height:550px; overflow-x: auto; overflow-y: auto;">
+        <form action="/users/addTeacherAttended" method="post" >
+
+            <div class="row">
+              <!-- <b class="text-muted">User's Information</b>
+              <hr /> -->
+              <label class="control-label fw-bold">Teachers who Attended the Training:</label>
+              <div class="form-check">
+                <% TeacherList.forEach((user, index ) => { %> <% if
+                  (user.userSchool === SameSchool && user.attendedID !== SchoolHeadID){%>
+                <!-- Each checkbox and associated hidden fields -->
+                <div class="form-check">
+                  <input class="form-check-input large-checkbox" type="checkbox" name="attendedID" value="<%= user.attendedID %>" />
+                  <label class="form-check-label larger-font"><%= user.userName %></label>
+                </div>
+                <% }; %>
+                <% }); %>
+                <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
+              </div>
+              <div class="col-md-6 border-right">
+                <div class="form-group">
+                  <label  class="control-label fw-bold">Title of the Training:</label>
+                  <input type="text" name="credential[0][trainingTitle]" class="form-control form-control mb-3" placeholder="What is the title of the training" required />
+                </div>
+                <div class="form-group">
+                  <label  class="control-label fw-bold">Start Date of the Training:</label>
+                  <input type="date" name="credential[0][trainingStart]" class="form-control form-control mb-3" required />
+                </div>
+                <div class="form-group">
+                  <label class="control-label fw-bold">End Date of the Training:</label>
+                  <input type="date" name="credential[0][trainingEnd]" class="form-control form-control mb-3" required />
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="control-label fw-bold">Number of Hours:</label>
+                  <input type="number" name="credential[0][trainingHours]" class="form-control form-control mb-3"  placeholder="How long is the Training" min="1" required />
+                </div>
+                <div class="form-group">
+                  <label  class="control-label fw-bold">Sponsor Agency:</label>
+                  <input type="text" class="form-control form-control mb-3" name="credential[0][trainingSponsor]" placeholder="Who Sponsor the Training" required />
+                </div>
+                <div class="form-group">
+                  <label  class="control-label fw-bold">Level of Training:</label>
+                  <select class="form-select" aria-label="Default select example" name="credential[0][trainingLevel]" id="" required >
+                    <option value="Division">Division</option>
+                    <option value="Regional">Regional</option>
+                    <option value="National">National</option>
+                    <option value="International">International</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+  <!--
+            <button type="button" class="btn btn-primary mb-1 mt-3 form-control" id="addCredential">Additional Training</button>
+            <br> -->
+            <div style="float: right;">
+                <input type="submit" class="btn btn-success" value="Submit">
+                <a href="/TeachersTraining"><input type="button" class="btn btn-secondary" value="Cancel"></a>
+            </div>
+
+          </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../ui/footer2.ejs') %>

@@ -266,10 +266,12 @@ function socketRouter(io) {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   router.post("/admin/register", async (req, res) => {
     try {
       const userSchoolList = await School_List.find({}, "SchoolName");
-      console.log(req.body);
+
       const {
         userName,
         userSchool,
@@ -282,6 +284,7 @@ function socketRouter(io) {
         userPass2,
       } = req.body;
       let errors = [];
+      console.log("Welcome to the system", userName);
 
       // Capitalize each word in userName
       const generatedUuid = uuid.v4();
@@ -600,7 +603,8 @@ function socketRouter(io) {
       userName,
       userSchool,
       userPosition,
-      userProfile,
+      userDepartment,
+      userEmail,
       credential,
     } = req.body;
     const trainingTitles = credential.map((item) => item.trainingTitle);
@@ -627,9 +631,6 @@ function socketRouter(io) {
           });
         });
 
-        if (userProfile) {
-          existingResource.userProfile = userProfile;
-        }
 
         await existingResource.save();
       } else {
@@ -639,7 +640,8 @@ function socketRouter(io) {
           userName,
           userSchool,
           userPosition,
-          userProfile,
+          userDepartment,
+          userEmail,
           credential: trainingTitles.map((item, index) => ({
             trainingTitle: item,
             trainingCertificate: certificateFiles[index]
@@ -682,8 +684,9 @@ function socketRouter(io) {
           attendedID: TeacherID,
         });
         const userName = data.userName;
-        const userProfile = data.userProfile;
         const userPosition = data.userPosition;
+        const userEmail = data.userEmail;
+        const userDepartment = data.userDepartment;
 
         if (existingResource) {
           // Update the existing document with the new credential data
@@ -692,31 +695,35 @@ function socketRouter(io) {
               trainingTitle: item,
               trainingStart: credential[index].trainingStart,
               trainingEnd: credential[index].trainingEnd,
+              trainingHours: credential[index].trainingHours,
+              trainingSponsor: credential[index].trainingSponsor,
+              trainingLevel: credential[index].trainingLevel,
             });
           });
 
-          // Update userProfile if provided
-          if (userProfile) {
-            existingResource.userProfile = userProfile;
-          }
-
           await existingResource.save();
+          sendEmailNotificationAddTeacherTraining(existingResource)
         } else {
           // Create a new document
           const attended = new TrainingAttended({
             attendedID: TeacherID,
             userName: userName,
             userSchool,
-            userProfile: userProfile,
             userPosition: userPosition,
+            userDepartment: userDepartment,
+            userEmail: userEmail,
             credential: trainingTitles.map((item, index) => ({
               trainingTitle: item,
               trainingCertificate: null,
               trainingStart: credential[index].trainingStart,
               trainingEnd: credential[index].trainingEnd,
+              trainingHours: credential[index].trainingHours,
+              trainingSponsor: credential[index].trainingSponsor,
+              trainingLevel: credential[index].trainingLevel,
             })),
           });
           await attended.save();
+          sendEmailNotificationAddTeacherTraining(attended)
         }
       }
 
@@ -727,6 +734,36 @@ function socketRouter(io) {
       return res.status(500).json({ message: err.message, type: "danger" });
     }
   });
+
+  const SchoolHeadEmailCheck = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER, // Your Gmail address (use environment variables)
+      pass: process.env.EMAIL_PASS, // Gmail app password
+    },
+  });
+
+  // Function to send an email notification to multiple recipients
+  async function sendEmailNotificationAddTeacherTraining(attended) {
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: attended.userEmail, // Join all email addresses with commas
+      subject: `New Added Training`, // Email subject
+      text: `Dear ${attended.userName}. \n\nYour School Head added your training kindly check and add your certificate. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
+      \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+      `, // Email body
+    };
+
+    SchoolHeadEmailCheck.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log(`Email sent New User ${attended.userName} :`, info.response);
+      }
+    });
+  }
+
+
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

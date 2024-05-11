@@ -17,6 +17,10 @@ const EventCalendar = new mongoose.Schema({
     type: String,
     required: true
   },
+  userSchool: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'School_List',
+  },
 });
 
 const Event = mongoose.model("EventCalendar", EventCalendar);

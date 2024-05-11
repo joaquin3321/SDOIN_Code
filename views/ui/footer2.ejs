@@ -16,6 +16,24 @@
     // Add conditions to exclude specific links, such as the one with the dropdown
     const isExcludedLink = link.classList.contains('with-design') && link.getAttribute('data-bs-toggle') === 'dropdown';
 
+    if (activePage === "/dashboard" && link.getAttribute('href') === '/dashboard#') {
+      link.classList.add('active');
+    } else if (activePage === "/SchoolDashboard" && link.getAttribute('href') === '/dashboard#') {
+      link.classList.add('active');
+    }
+
+    if (activePage === "/calendar" && link.getAttribute('href') === '/calendar#') {
+      link.classList.add('active');
+    } else if (activePage === "/schoolCalendar" && link.getAttribute('href') === '/calendar#') {
+      link.classList.add('active');
+    }
+
+    if (activePage === "/resources" && link.getAttribute('href') === '/resources#') {
+      link.classList.add('active');
+    } else if (activePage === "/SchoolResources" && link.getAttribute('href') === '/resources#') {
+      link.classList.add('active');
+    }
+
     if (linkPath === activePage && !isExcludedLink) {
       link.classList.add('active');
     } else if (activePage === "/UserList" && link.getAttribute('href') === '/users') {

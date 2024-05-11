@@ -1,0 +1,339 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>Schools Learning Resources</title>
+<style>
+  .styled-table {
+    border-collapse: collapse;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .styled-table thead tr {
+    background-color: #695cfe;
+    color: #ffffff;
+    text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+    padding: 10px 15px;
+  }
+
+  .styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+  }
+
+  .styled-table tbody tr:last-of-type {
+    border-bottom: 5px solid #009879;
+  }
+
+  .learning_resources {
+    padding: 60px 30px;
+    margin-top: 10px;
+
+  }
+</style>
+
+<!-- Show Learning Resources -->
+<div class="col-lg-12 learning_resources">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#learning_resources"><i class="fa-solid fa-plus"></i> Add New Resources</a>
+      </div>
+    </div>
+    <div class="card-body" style="max-height:519px; overflow-x: auto; overflow-y: auto;">
+      <table class="table-hover styled-table table table-bordered commonTable" id="list">
+        <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+          School Learning Resources List
+        </h3>
+        <%- include('../partials/messages.ejs')%>
+        <thead class="table-info">
+          <tr>
+            <th width="5%" class="text-center">#</th>
+            <th>Title</th>
+            <th style="text-align: center;" width="20%">Who Added</th>
+            <th style="text-align: center;" width="25%">File</th>
+            <th style="text-align: center;" width="12%">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% let SameSchoolCount = 0;
+          resources.forEach((resources, i) => {
+            if (resources.userSchool === SameSchool) {
+              SameSchoolCount++; }
+          %>
+          <% if(resources.userSchool === SameSchool){ %>
+
+          <tr>
+            <td class="text-center">
+              <b><%= SameSchoolCount %></b>
+            </td>
+            <td>
+              <b class="truncate"><%= resources.resourcesTitle %></b>
+            </td>
+            <td class="text-center">
+              <%= resources.whoAdded %>
+            </td>
+            <td>
+              <b class="truncate"><a href="/public/resources/<%= resources.resourcesFile %>" target="_blank" class="form-control btn btn-success"><i class="fa-solid fa-file-pdf"></i> View Resources File</a></b>
+            </td>
+            <td class="text-center">
+              <% if( resources.whoAdded === CurrentlyLoggedIn ){ %>
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit Resources">
+                <a class="btn btn-outline-success view_resources" data-bs-toggle="modal" data-bs-target="#edit_resources" data-id="<%= resources._id %>">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+              </div>
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete Resources">
+                <a class="btn btn-outline-danger view_resources" data-bs-toggle="modal" data-bs-target="#delete_resources" data-id="<%= resources._id %>">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </div>
+              <% }else { %>
+              <b class="truncate">Not Applicable</b>
+              <% } %>
+            </td>
+          </tr>
+          <% } %>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Handles Adding New Resources -->
+<div class="modal fade" id="learning_resources" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="/users/addSchoolResources" method="POST" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">Learning Resources Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+        </div>
+        <div class="modal-body">
+          <div class="" id="content">
+            <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
+            <div class="form-group">
+              <label class="control-label fw-bold">Title:</label>
+              <input type="text" name="resourcesTitle" class="form-control form-control mb-3" placeholder="Title of the Learning Resources" required />
+            </div>
+
+            <input type="hidden" name="whoAdded" class="form-control form-control mb-3" value="<%= user.userName %>" />
+
+            <div class="form-group">
+              <label class="control-label fw-bold">Resources File:</label>
+              <input type="file" name="resourcesFile" class="form-control form-control" accept="application/pdf" required />
+              <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="modal-footer-news">
+          <button type="submit" class="btn btn-success">
+            Add Resources
+          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="edit_resources" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Edit Resources</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="EditResourcesLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Edit_Resources">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-success" id="EditResources" onclick="EditResources('${resourcesID}')">
+          Edit Resources
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="delete_resources" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Delete Resources</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center" id="DeleteResourcesLoader">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="" id="Delete_Resources">
+          <!-- The data from the UserAction will be shown here -->
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button type="button" class="btn btn-danger" id="DeleteResources" onclick="DeleteResources('${resourcesID}')">
+          Delete Resources
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async function() {
+    const viewButtons = document.querySelectorAll(".view_resources");
+    viewButtons.forEach(async function(button) {
+      button.addEventListener("click", async function() {
+        const resourcesID = button.getAttribute("data-id");
+
+
+        const EditResources = document.getElementById("EditResources");
+        EditResources.setAttribute("onclick", `EditResources('${resourcesID}')`);
+
+        const DeleteResources = document.getElementById("DeleteResources");
+        DeleteResources.setAttribute("onclick", `DeleteResources('${resourcesID}')`);
+
+        document.getElementById("EditResourcesLoader").style.display = "block";
+        document.getElementById("DeleteResourcesLoader").style.display = "block";
+
+        try {
+          const response = await fetch(`/action/getResources/${resourcesID}`);
+          const data = await response.json();
+
+          const {
+            resourcesTitle,
+            resourcesFile
+          } = data;
+          document.getElementById("EditResourcesLoader").style.display = "none";
+          document.getElementById("DeleteResourcesLoader").style.display = "none";
+
+          document.getElementById("Edit_Resources").innerHTML = `
+          <div style="font-size:20px;" class="mb-3"><b>Edit This Learning Resources: <b style="color:green;"> ${resourcesTitle}</b></div>
+          <div class="form-group">
+              <label class="control-label fw-bold">Title:</label>
+              <input type="text" id="resourcesTitle" class="form-control form-control mb-3" placeholder="Title of the Learning Resources" value="${resourcesTitle}" />
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">Resources File:</label>
+              <input type="file" id="resourcesFile" class="form-control form-control" accept="application/pdf" required />
+              <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
+            </div>
+          </div>
+          `;
+
+          document.getElementById("Delete_Resources").innerHTML = `
+          <div class="text-center" style="font-size:20px;">
+              <b>Are you sure you want to delete this learning resources: <b style="color:red;">${resourcesTitle}</b> ?
+          </div>
+        `;
+
+        } catch (error) {
+          document.getElementById("EditResourcesLoader").style.display = "none";
+          document.getElementById("DeleteResourcesLoader").style.display = "none";
+          console.error(error);
+        }
+      });
+    });
+  });
+
+  async function EditResources(resourcesID) {
+
+    const resourcesTitleUpdate = document.getElementById("resourcesTitle").value;
+
+    const resourcesFile = document.getElementById("resourcesFile");
+    const resourcesUpdate = resourcesFile.files[0];
+
+    const updateData = new FormData();
+    updateData.append("resourcesTitle", resourcesTitleUpdate);
+
+    if (resourcesUpdate) {
+      updateData.append("resourcesFile", resourcesUpdate);
+    }
+
+    Swal.fire({
+        title: "Are you sure you want to Update this Learning Resources?",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Yes, update it",
+        confirmButtonColor: "#198754",
+        cancelButtonText: "No, cancel",
+        icon: "question",
+        dangerMode: true,
+      })
+      .then(async (willUpdate) => {
+        if (willUpdate.isConfirmed) {
+          try {
+            const response = await fetch(`/action/Edit_Resources/${resourcesID}`, {
+              method: "PATCH",
+              body: updateData, // Use FormData directly instead of JSON.stringify
+            });
+
+            if (!response.ok) {
+              throw new Error(`Failed to update document: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+              const responseData = await response.json();
+              console.log(responseData);
+
+              // Handle the response data as needed
+              location.reload();
+              req.flash("success_msg", "Resources Updated Successfully");
+            } else {
+              // Handle non-JSON response here if needed
+              console.error("Server response is not in JSON format");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        } else {
+          Swal.fire("Update canceled", "", "info");
+        }
+      });
+  }
+
+  async function DeleteResources(resourcesID) {
+    try {
+      const response = await fetch(`/action/Delete_Resources/${resourcesID}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        // Document deleted successfully, refresh the page
+        location.reload();
+        req.flash("success_msg", "Resources Deleted Successfully");
+      } else {
+        console.error("Failed to delete news");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+</script>
+
+<%- include('../ui/footer2.ejs') %>

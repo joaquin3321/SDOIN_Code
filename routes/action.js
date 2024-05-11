@@ -40,6 +40,7 @@ function socketRouter(io) {
       const userID = req.params.userID;
       const attendedID = req.user.attendedID;
       const updateData = req.body;
+      const userName = req.user.userName;
 
       // Check if a file is included in the request
       if (req.file) {
@@ -75,6 +76,15 @@ function socketRouter(io) {
         }
       );
 
+      const updatedLearningResources= await LearningResources.updateMany(
+        { whoAdded: userName },
+        {
+          $set: {
+            whoAdded: updateData.userName,
+          }
+        }
+      );
+
       if (!updatedUser) {
         res.status(404).json({ success: false, message: "User not found" });
       } else {
@@ -88,7 +98,7 @@ function socketRouter(io) {
         console.log("User's Password Updated Successfully");
 
         // You can send a JSON response or redirect as needed
-        res.status(200).json({ success: true, updatedUser, updatedTrainingAttended });
+        res.status(200).json({ success: true, updatedUser, updatedTrainingAttended, updatedLearningResources });
       }
     } catch (err) {
       console.error(err);
@@ -838,6 +848,9 @@ function socketRouter(io) {
             "credential.$.trainingCertificate": updateData.trainingCertificate,
             "credential.$.trainingStart": updateData.trainingStart,
             "credential.$.trainingEnd": updateData.trainingEnd,
+            "credential.$.trainingSponsor": updateData.trainingSponsor,
+            "credential.$.trainingHours": updateData.trainingHours,
+            "credential.$.trainingLevel": updateData.trainingLevel,
           },
         },
         {
@@ -931,11 +944,23 @@ function socketRouter(io) {
     }
   });
 
-  // Example endpoint to retrieve events from the database
   router.get("/events", async (req, res) => {
     try {
       // Fetch events from the database
-      const events = await Event.find();
+      const events = await Event.find({userSchool: null});
+      res.json(events);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Example endpoint to retrieve events from the database
+  router.get("/schoolEvent", async (req, res) => {
+    try {
+      const sameSchool = req.user.userSchool;
+      // Fetch events from the database
+      const events = await Event.find({userSchool: sameSchool});
       res.json(events);
     } catch (error) {
       console.error(error);

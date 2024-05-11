@@ -27,11 +27,29 @@ const { ensureAuthenticated, forwardAuthenticated } = require("../config/auth");
 function socketRouter(io) {
   const router = express.Router();
 
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER, // Your Gmail address (use environment variables)
+      pass: process.env.EMAIL_PASS, // Gmail app password
+    },
+  });
+
   async function getUserEmails() {
     try {
       const users = await User.find({}, "userEmail"); // Retrieve all user emails
       return users.map((user) => user.userEmail); // Return an array of email addresses
       console.log(users);
+    } catch (err) {
+      console.error("Error fetching user emails:", err);
+      return [];
+    }
+  }
+
+  async function getUserEmailsSameSchool(userSchool) {
+    try {
+      const users = await User.find({ userSchool: userSchool }, "userEmail");
+      return users.map((user) => user.userEmail);
     } catch (err) {
       console.error("Error fetching user emails:", err);
       return [];
@@ -419,14 +437,6 @@ function socketRouter(io) {
     return res.redirect("/dashboard");
   });
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER, // Your Gmail address (use environment variables)
-      pass: process.env.EMAIL_PASS, // Gmail app password
-    },
-  });
-
   // Function to send an email notification to multiple recipients
   async function sendEmailNotificationNews(news) {
     const recipientEmails = await getUserEmails(); // Fetch all user emails
@@ -453,6 +463,56 @@ function socketRouter(io) {
       }
     });
   }
+
+  router.post("/addSchoolNews", uploadNews, async (req, res) => {
+    const { newsTitle, newsContent, userSchool } = req.body;
+    const news = new NewsContent({
+      newsTitle,
+      newsContent,
+      userSchool,
+      newsImage: req.file ? req.file.filename : "", // Use the file name if provided
+    });
+    io.emit("newNews", news);
+    sendEmailNotificationSchoolNews(news);
+
+    console.log(news);
+
+    try {
+      await news.save();
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message, type: "danger" });
+    }
+    req.flash("success_msg", `News Created Successfully.`);
+    return res.redirect("/SchoolDashboard");
+  });
+
+    // Function to send an email notification to multiple recipients
+    async function sendEmailNotificationSchoolNews(news) {
+      const recipientEmails = await getUserEmailsSameSchool(news.userSchool); // Fetch all user emails
+
+      if (recipientEmails.length === 0) {
+        console.warn("No email recipients found.");
+        return;
+      }
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER, // Sender's email address
+        to: recipientEmails.join(","), // Join all email addresses with commas
+        subject: `New School News!!`, // Email subject
+        text: `A new school news item has been created:\n\nTitle: ${news.newsTitle}.\n\nGo check the website for more Information!
+        \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+        `, // Email body
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+    }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -525,12 +585,15 @@ function socketRouter(io) {
     const resources = new LearningResources({
       resourcesTitle,
       whoAdded,
+
       resourcesFile: req.file ? req.file.filename : "", // Use the file name if provided
     });
-    io.emit("newResources", resources);
+
     console.log(resources);
+
     try {
       await resources.save();
+      sendEmailNotificationAdminResources(resources);
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: err.message, type: "danger" });
@@ -538,6 +601,84 @@ function socketRouter(io) {
     req.flash("success_msg", `Resources Created Successfully.`);
     return res.redirect("/resources");
   });
+
+  // Function to send an email notification to multiple recipients
+  async function sendEmailNotificationAdminResources(resources) {
+    const recipientEmails = await getUserEmails(); // Fetch all user emails
+
+    if (recipientEmails.length === 0) {
+      console.warn("No email recipients found.");
+      return;
+    }
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: recipientEmails.join(","), // Join all email addresses with commas
+      subject: `Admin Added New Learning Resources`, // Email subject
+      text: `Good Day!! \n\nThe Admin - ${resources.whoAdded} added new learning resources go check it out. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
+        \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+        `, // Email body
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log(
+          `Email sent too all user: ${recipientEmails} :`,
+          info.response
+        );
+      }
+    });
+  }
+
+  router.post("/addSchoolResources", uploadResources, async (req, res) => {
+    const { resourcesTitle, whoAdded, userSchool } = req.body;
+    const resources = new LearningResources({
+      resourcesTitle,
+      whoAdded,
+      userSchool,
+      resourcesFile: req.file ? req.file.filename : "", // Use the file name if provided
+    });
+    io.emit("newResources", resources);
+    console.log(resources);
+    try {
+      await resources.save();
+      sendEmailNotificationSchoolResources(resources);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: err.message, type: "danger" });
+    }
+    req.flash("success_msg", `Resources Created Successfully.`);
+    return res.redirect("/SchoolResources");
+  });
+
+  async function sendEmailNotificationSchoolResources(resources) {
+    const recipientEmails = await getUserEmailsSameSchool(resources.userSchool); // Fetch all user emails if they have the same school
+
+    if (recipientEmails.length === 0) {
+      console.warn("No email recipients found.");
+      return;
+    }
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: recipientEmails.join(","), // Join all email addresses with commas
+      subject: `New Learning Resources Added`, // Email subject
+      text: `Good Day!! \n\n ${resources.whoAdded} added new learning resources go check it out. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
+        \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+        `, // Email body
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log(
+          `Email sent too all user: ${recipientEmails} :`,
+          info.response
+        );
+      }
+    });
+  }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -631,7 +772,6 @@ function socketRouter(io) {
           });
         });
 
-
         await existingResource.save();
       } else {
         // Create a new document
@@ -702,7 +842,7 @@ function socketRouter(io) {
           });
 
           await existingResource.save();
-          sendEmailNotificationAddTeacherTraining(existingResource)
+          sendEmailNotificationAddTeacherTraining(existingResource);
         } else {
           // Create a new document
           const attended = new TrainingAttended({
@@ -723,7 +863,7 @@ function socketRouter(io) {
             })),
           });
           await attended.save();
-          sendEmailNotificationAddTeacherTraining(attended)
+          sendEmailNotificationAddTeacherTraining(attended);
         }
       }
 
@@ -733,14 +873,6 @@ function socketRouter(io) {
       console.error(err);
       return res.status(500).json({ message: err.message, type: "danger" });
     }
-  });
-
-  const SchoolHeadEmailCheck = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER, // Your Gmail address (use environment variables)
-      pass: process.env.EMAIL_PASS, // Gmail app password
-    },
   });
 
   // Function to send an email notification to multiple recipients
@@ -754,16 +886,17 @@ function socketRouter(io) {
       `, // Email body
     };
 
-    SchoolHeadEmailCheck.sendMail(mailOptions, (error, info) => {
+    transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Error sending email:", error);
       } else {
-        console.log(`Email sent New User ${attended.userName} :`, info.response);
+        console.log(
+          `Email sent New User ${attended.userName} :`,
+          info.response
+        );
       }
     });
   }
-
-
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -784,8 +917,9 @@ function socketRouter(io) {
           attendedID: TeacherID,
         });
         const userName = data.userName;
-        const userProfile = data.userProfile;
         const userPosition = data.userPosition;
+        const userEmail = data.userEmail;
+        const userDepartment = data.userDepartment;
 
         if (existingResource) {
           // Update the existing document with the new credential data
@@ -794,31 +928,35 @@ function socketRouter(io) {
               trainingTitle: item,
               trainingStart: credential[index].trainingStart,
               trainingEnd: credential[index].trainingEnd,
+              trainingHours: credential[index].trainingHours,
+              trainingSponsor: credential[index].trainingSponsor,
+              trainingLevel: credential[index].trainingLevel,
             });
           });
 
-          // Update userProfile if provided
-          if (userProfile) {
-            existingResource.userProfile = userProfile;
-          }
-
           await existingResource.save();
+          sendEmailNotificationAddDivisionTraining(existingResource);
         } else {
           // Create a new document
           const attended = new TrainingAttended({
             attendedID: TeacherID,
             userName: userName,
             userSchool,
-            userProfile: userProfile,
             userPosition: userPosition,
+            userDepartment: userDepartment,
+            userEmail: userEmail,
             credential: trainingTitles.map((item, index) => ({
               trainingTitle: item,
               trainingCertificate: null,
               trainingStart: credential[index].trainingStart,
               trainingEnd: credential[index].trainingEnd,
+              trainingHours: credential[index].trainingHours,
+              trainingSponsor: credential[index].trainingSponsor,
+              trainingLevel: credential[index].trainingLevel,
             })),
           });
           await attended.save();
+          sendEmailNotificationAddDivisionTraining(attended);
         }
       }
 
@@ -829,6 +967,28 @@ function socketRouter(io) {
       return res.status(500).json({ message: err.message, type: "danger" });
     }
   });
+
+  async function sendEmailNotificationAddDivisionTraining(attended) {
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: attended.userEmail, // Join all email addresses with commas
+      subject: `New Added Training`, // Email subject
+      text: `Dear ${attended.userName}. \n\nThe Admin added your training kindly check and add your certificate. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
+      \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+      `, // Email body
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log(
+          `Email sent to this user: ${attended.userName} :`,
+          info.response
+        );
+      }
+    });
+  }
 
   router.post("/addEvent", async (req, res) => {
     const { createTitle, createDetails, createStart, createEnd } = req.body;
@@ -871,6 +1031,52 @@ function socketRouter(io) {
         console.error("Error sending email:", error);
       } else {
         console.log(`Event sent: ${event.createTitle}`, info.response);
+      }
+    });
+  }
+
+  router.post("/addSchoolEvent", async (req, res) => {
+    const { createTitle, createDetails, createStart, createEnd, userSchool } = req.body;
+    const event = new Event({
+      createTitle,
+      createDetails,
+      createStart,
+      createEnd,
+      userSchool,
+    });
+    console.log(event);
+    sendEmailNotificationSchoolEvent(event);
+    try {
+      await event.save();
+    } catch (error) {
+      console.error(err);
+      return res.status(500).json({ message: err.message, type: "danger" });
+    }
+    return res.redirect("/SchoolCalendar");
+  });
+
+  async function sendEmailNotificationSchoolEvent(event) {
+    const recipientEmails = await getUserEmailsSameSchool(event.userSchool); // Fetch all user emails
+
+    if (recipientEmails.length === 0) {
+      console.warn("No email recipients found.");
+      return;
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender's email address
+      to: recipientEmails.join(","), // Join all email addresses with commas
+      subject: `New School Event!!`, // Email subject
+      text: `A new school event has been created:\n\nTitle: ${event.createTitle}.\n\n Go check the website for more Information!
+      \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+      `, // Email body
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log(`Event sent to: ${event.userSchool}`, info.response);
       }
     });
   }

@@ -125,7 +125,26 @@
     document.getElementById("positionInput").disabled = false;
     document.getElementById("usernameInput").disabled = false;
     document.getElementById("schoolInput").style.display = 'none';
+    document.getElementById("departmentInput").style.display = 'none';
     document.getElementById("schoolInputContainer").style.display = 'block';
+    document.getElementById("DepartmentInputContainer").style.display = 'block';
+
+    document.getElementById("DepartmentInputContainer").innerHTML = `
+      <select class="form-select" aria-label="Default select example mb-3" id="userDepartment">
+        <option disabled selected hidden>--Select Department--</option>
+        <option value="None">None</option>
+        <option value="Science">Science</option>
+        <option value="TLE">TLE</option>
+        <option value="AP">AP</option>
+        <option value="Filipino">Filipino</option>
+        <option value="English">English</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="Values Education">Values Education</option>
+        <option value="Mapeh">Mapeh</option>
+        <option value="Administration & Facilities Staff">Administration & Facilities Staff</option>
+        <option value="Education Program Supervisor">Education Program Supervisor</option>
+      </select>
+    `;
 
     document.getElementById("schoolInputContainer").innerHTML = `
     <select class="form-select" aria-label="Default select example" id="userSchool">
@@ -164,14 +183,17 @@
     document.getElementById("positionInput").disabled = true;
     document.getElementById("usernameInput").disabled = true;
 
+    document.getElementById("DepartmentInputContainer").style.display = 'none';
     document.getElementById("schoolInputContainer").style.display = 'none';
     document.getElementById("schoolInput").style.display = 'block';
+    document.getElementById("departmentInput").style.display = 'block';
   }
 
   async function UpdateEdit(userID) {
     const nameInput = document.getElementById("nameInput").value;
     const positionInput = document.getElementById("positionInput").value;
     const usernameInput = document.getElementById("usernameInput").value;
+    const userDepartmentInput = document.getElementById("userDepartment").value;
 
     const userSchoolInput = document.getElementById("userSchool").value;
     const validUserSchoolInput = userSchoolInput ? userSchoolInput : null;
@@ -182,6 +204,7 @@
       userPosition: positionInput,
       userEmail: usernameInput,
       userSchool: validUserSchoolInput,
+      userDepartment: userDepartmentInput,
       // Add other fields you want to update
     };
     Swal.fire({

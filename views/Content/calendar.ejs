@@ -54,10 +54,15 @@
           </tr>
         </thead>
         <tbody>
-          <% event.forEach((event, i) => { %>
+          <% let nullSchoolCount = 0;
+          event.forEach((event, i) => {
+            if (event.userSchool === null) {
+              nullSchoolCount++;
+            } %>
+            <% if(event.userSchool === null){ %>
           <tr>
             <td class="text-center">
-              <b><%= i + 1 %></b>
+              <b><%= nullSchoolCount %></b>
             </td>
             <td>
               <b class="truncate">
@@ -78,6 +83,7 @@
               </div>
             </td>
           </tr>
+          <% } %>
           <% }); %>
         </tbody>
       </table>
@@ -89,9 +95,6 @@
 <div class="container">
   <div id="calendar"></div>
 </div>
-
-
-
 
 <!-- Create Event Modal -->
 <% if( user.userType == "Admin"){ %>

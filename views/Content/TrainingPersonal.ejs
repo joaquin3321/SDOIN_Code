@@ -122,7 +122,7 @@
               <th>Hours</th>
               <th>Sponsor Agency</th>
               <th>Level</th>
-              <th style="text-align: center;" width="25%">Certificate</th>
+              <th style="text-align: center;" width="10%">Certificate</th>
               <th style="text-align: center;" width="5%">Action</th>
             </tr>
           </thead>
@@ -153,7 +153,7 @@
               <td>
                 <% if (credential.trainingCertificate) { %>
                 <b class="truncate">
-                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="btn btn-success btn-sm">
+                  <a href="/public/attended/<%= credential.trainingCertificate %>" target="_blank" class="form-control btn btn-success btn-sm">
                     <!-- <i class="fa-solid fa-file-pdf"></i>  -->
                     View Certificate
                   </a>
@@ -263,7 +263,7 @@
 
 <!-- Delete Personal Training Attended Modal -->
 <div class="modal fade" id="Delete_Personal_Attended" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog ">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="staticBackdropLabel">Delete Training Attended</h5>
@@ -293,7 +293,7 @@
 
 <!-- Edit Personal Training Attended Modal -->
 <div class="modal fade" id="Edit_Personal_Attended" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="staticBackdropLabel">Edit Training Attended</h5>
@@ -355,30 +355,59 @@
             trainingTitle,
             trainingCertificate,
             trainingStart,
-            trainingEnd
+            trainingEnd,
+            trainingHours,
+            trainingSponsor,
+            trainingLevel
           } = data;
 
           document.getElementById("Edit_Personal").innerHTML = `
           <div class="text-center mb-3" style="font-size:20px;">
               <b>Are you sure you want to update your training: <b style="color:green;"> ${trainingTitle}</b> ?
           </div>
-          <div class="credentialEntry">
+          <div class="row">
+            <!-- <b class="text-muted">User's Information</b>
+            <hr /> -->
+            <div class="col-md-6 border-right">
               <div class="form-group">
-                <label class="control-label fw-bold">Training Title:</label>
-                <input type="text" id="trainingTitle" class="form-control form-control mb-3" placeholder="Tile of the Training" value="${trainingTitle}" />
+                <label class="control-label fw-bold">Title of the Training:</label>
+                <input type="text" id="trainingTitle" class="form-control form-control mb-3" placeholder="What is the title of the training" value="${trainingTitle}" />
               </div>
               <div class="form-group">
-                <label class="control-label fw-bold">Training Certificate:</label>
-                <input type="file" id="trainingCertificate" class="form-control" accept="application/pdf">
-                <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept PDF File</span>
+                <label class="control-label fw-bold">Start Date of the Training:</label>
+                <input type="date" id="trainingStart" class="form-control form-control mb-3" value="${trainingStart}" />
               </div>
-              <label class="control-label fw-bold mt-3">Start/End of the Training:</label>
-              <div class="input-group mb-3">
-                <input type="date" class="form-control" id="trainingStart" value="${trainingStart}">
-                <span class="input-group-text">@</span>
-                <input type="date" class="form-control" id="trainingEnd" value="${trainingEnd}">
+              <div class="form-group">
+                <label class="control-label fw-bold">End Date of the Training:</label>
+                <input type="date" id="trainingEnd" class="form-control form-control mb-3"  value="${trainingEnd}"/>
               </div>
             </div>
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="control-label fw-bold">Number of Hours:</label>
+                <input type="number" id="trainingHours" class="form-control form-control mb-3" placeholder="How long is the Training" min="1"  value="${trainingHours}"/>
+              </div>
+              <div class="form-group">
+                <label class="control-label fw-bold">Sponsor Agency:</label>
+                <input type="text" class="form-control form-control mb-3" id="trainingSponsor" placeholder="Who Sponsor the Training"  value="${trainingSponsor}"/>
+              </div>
+              <div class="form-group">
+                <label class="control-label fw-bold">Level of Training:</label>
+                <select class="form-select" aria-label="Default select example" id="trainingLevel" value="${trainingLevel}">
+                  <option value="${trainingLevel}">${trainingLevel}</option>
+                  <option value="Division">Division</option>
+                  <option value="Regional">Regional</option>
+                  <option value="National">National</option>
+                  <option value="International">International</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group mb-3">
+              <label class="control-label fw-bold">Certificate:</label>
+              <input type="file" id="trainingCertificate" class="trainingCertificate form-control" accept="application/pdf" required>
+            </div>
+          </div>
           `;
 
           document.getElementById("Delete_Personal").innerHTML = `
@@ -418,6 +447,9 @@
     const file = fileInput.files[0]; // Retrieve the file from the file input element
     const trainingStartInput = document.getElementById("trainingStart").value;
     const trainingEndInput = document.getElementById("trainingEnd").value;
+    const trainingHoursInput = document.getElementById("trainingHours").value;
+    const trainingSponsorInput = document.getElementById("trainingSponsor").value;
+    const trainingLevelInput = document.getElementById("trainingLevel").value;
 
     const formData = new FormData();
     if (file) {
@@ -426,6 +458,9 @@
     formData.append("trainingTitle", trainingTitle_Input);
     formData.append("trainingStart", trainingStartInput);
     formData.append("trainingEnd", trainingEndInput);
+    formData.append("trainingSponsor", trainingSponsorInput);
+    formData.append("trainingHours", trainingHoursInput);
+    formData.append("trainingLevel", trainingLevelInput);
 
     Swal.fire({
       title: "Are you sure you want to update your profile?",

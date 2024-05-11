@@ -82,32 +82,94 @@
       <div class="menu">
         <hr>
         <ul class="menu-links">
-
+          <% if( user.userType == "Admin" || userSchool.userSchool === "Schools Division of Ilocos Norte"){ %>
           <li class="nav-link li-design">
             <a href="/dashboard" class="with-design">
               <i class='bx bx-home-alt icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dashboard"></i>
               <span class="text nav-text">Dashboard</span>
             </a>
           </li>
-          <li class="nav-link li-design">
-            <a href="/calendar" class="with-design">
-              <i class='bx bx-calendar icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Calendar of Activities"></i>
-              <span class="text nav-text" style="font-size: 15px;">Calendar of Activities</span>
-            </a>
-          </li>
+          <% } else { %>
+            <li class="nav-link li-design">
+              <a href="/dashboard#" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">
+                <i class='bx bx-book-open icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Learning Resources"></i>
+                <span class="text nav-text">Dashboard</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark ms-4">
+                <li><a class="dropdown-item" href="/dashboard">
+                  <i class='bx bx-home-alt'></i>&nbsp&nbsp
+                    Admin Dashboard
+                  </a>
+                </li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="/SchoolDashboard"><i class='bx bx-home-alt'></i>&nbsp&nbsp School Dashboard</a></li>
+              </ul>
+            </li>
+          <% } %>
+          <% if( user.userType == "Admin" || userSchool.userSchool === "Schools Division of Ilocos Norte"){ %>
+            <li class="nav-link li-design">
+              <a href="/calendar" class="with-design">
+                <i class='bx bx-calendar icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Calendar of Activities"></i>
+                <span class="text nav-text" style="font-size: 15px;">Calendar of Activities</span>
+              </a>
+            </li>
+            <% } else { %>
+              <li class="nav-link li-design">
+                <a href="/calendar#" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-calendar icon'></i>
+                  <span class="text nav-text" style="font-size: 15px;">Calendar of Activities</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark ms-4">
+                  <li><a class="dropdown-item" href="/calendar">
+                    <i class='bx bx-calendar'></i>&nbsp&nbsp
+                      Admin Event
+                    </a>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li><a class="dropdown-item" href="/schoolCalendar"><i class='bx bx-calendar'></i>&nbsp&nbsp School Event</a></li>
+                </ul>
+              </li>
+            <% } %>
+
+          <% if( user.userType == "Admin" || userSchool.userSchool === "Schools Division of Ilocos Norte"){ %>
           <li class="nav-link li-design">
             <a href="/resources" class="with-design">
               <i class='bx bx-book-open icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Learning Resources"></i>
               <span class="text nav-text" style="font-size: 15px;">Learning Resources</span>
             </a>
           </li>
+          <% } else { %>
+          <li class="nav-link li-design">
+            <a href="/resources#" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">
+              <i class='bx bx-book-open icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Learning Resources"></i>
+              <span class="text nav-text" style="font-size: 15px;">Learning Resources</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark ms-4">
+              <li><a class="dropdown-item" href="/resources">
+                <i class='bx bx-book-open'></i>&nbsp&nbsp
+                  Admin Resources
+                </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="/SchoolResources"><i class='bx bx-book-open'></i>&nbsp&nbsp School Resources</a></li>
+            </ul>
+          </li>
+          <% } %>
           <li class="nav-link li-design">
             <a href="/speakers" class="with-design">
               <i class='bx bx-user-voice icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Speakers"></i>
               <span class="text nav-text">Speakers</span>
             </a>
           </li>
-          <% if( user.userType == "Admin" || user.userType == "School Head"){ %>
+          <% if( user.userType == "Admin"){
+            console.log(userSchool.userSchool)
+            %>
           <li class="nav-link li-design">
             <a href="/attended#" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">
               <i class='fa-solid fa-users-rectangle icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Trainings Attended"></i>
@@ -222,7 +284,13 @@
               <input type="text" id="positionInput" class="form-control form-control mb-3" value="<%= user.userPosition %>" disabled />
             </div>
             <div class="form-group">
-              <label class="control-label fw-bold">Username:</label>
+              <label class="control-label fw-bold">Department:</label>
+              <input type="text" id="departmentInput" class="form-control form-control mb-3" value="<%= user.userDepartment %>" disabled />
+              <div id="DepartmentInputContainer" class="mb-3">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label fw-bold">Email Address:</label>
               <input type="email" id="usernameInput" class="form-control form-control mb-3" value="<%= user.userEmail %>" disabled />
             </div>
           </div>

@@ -13,6 +13,10 @@ const Content = new mongoose.Schema({
   newsImage: {
     type: String,
   },
+  userSchool: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'School_List',
+  },
   date: {
     type: String,
     default: () => moment().format("YYYY-MM-DD hh:mm A"),

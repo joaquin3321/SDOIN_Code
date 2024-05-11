@@ -12,6 +12,10 @@ const Learning_Resources = new mongoose.Schema({
   resourcesFile:{
     type: String,
   },
+  userSchool: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'School_List',
+  },
 
 });
 

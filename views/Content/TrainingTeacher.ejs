@@ -100,7 +100,12 @@
             margin: [0, 0, 0, 10]
           });
         }
-      }],
+      }, {
+        extend: 'excel', // Add this line for Excel export
+        filename: 'Exported Data for Divisions',
+        className: 'custom-excel-button',
+        text: '<i class="fa fa-file-excel-o"></i> Export as Excel',
+      }, ],
       lengthMenu: [
         [5, 10, 25, 50, -1],
         [5, 10, 25, 50, "All"]
@@ -114,6 +119,9 @@
 
     $('#exportPdfButton').on('click', function() {
       table.button('.custom-pdf-button').trigger();
+    });
+    $('#exportExlButton').on('click', function() {
+      table.button('.custom-excel-button').trigger();
     });
 
     function normalizeDate(date) {

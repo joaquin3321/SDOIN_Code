@@ -249,6 +249,7 @@
 <div class="accordion news_content" id="accordionExample">
   <%
       // Reverse the order of the news items to apply Last In, First Out (LIFO)
+      let itemCount = 0;
       const totalNewsItems = news.length;
       const reversedNews = [...news].reverse(); // Make a copy and reverse it
       let isFirstForNullSchool = true; // Flag to track if the first item with userSchool === null has been encountered
@@ -259,7 +260,9 @@
           // If this is the first item with userSchool === null, set isFirstForNullSchool to false
           isFirstForNullSchool = false;
         }
-
+        if (item.userSchool === SameSchool) {
+          itemCount++;
+        }
     %>
   <% if(item.userSchool === SameSchool){ %>
   <div class="accordion-item">
@@ -292,6 +295,9 @@
   </div>
   <% } %>
   <% }); %>
+  <% if (itemCount === 0) { %>
+    <div class="text-center fw-bold" style="font-size: 100px;">NO SCHOOL NEWS POSTED!!</div>
+  <% }%>
 </div>
 
 <!-- FOR REAL TIME UPDATE -->
@@ -304,7 +310,7 @@
   // Current count of news items
   let newsCount = "<%= totalNewsItems %>"; // Updated for the reversed array
 
-  socket.on("newNews", (news) => {
+  socket.on("newSchoolNews", (news) => {
     // Increment the news count to maintain unique numbering
     newsCount++;
 

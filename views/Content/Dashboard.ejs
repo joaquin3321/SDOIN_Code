@@ -248,6 +248,7 @@
 
 <div class="accordion news_content" id="accordionExample">
   <%
+    let itemCount = 0;
     // Reverse the order of the news items to apply Last In, First Out (LIFO)
     const totalNewsItems = news.length;
     const reversedNews = [...news].reverse(); // Make a copy and reverse it
@@ -258,6 +259,9 @@
       if (isFirst) {
         // If this is the first item with userSchool === null, set isFirstForNullSchool to false
         isFirstForNullSchool = false;
+      }
+      if (item.userSchool === null ) {
+        itemCount++;
       }
 
   %>
@@ -292,6 +296,9 @@
   </div>
   <% } %>
   <% }); %>
+  <% if (itemCount === 0) { %>
+    <div class="text-center fw-bold" style="font-size: 100px;">NO ADMIN NEWS POSTED!!</div>
+  <% }%>
 </div>
 
 

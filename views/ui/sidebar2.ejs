@@ -92,7 +92,7 @@
           <% } else { %>
             <li class="nav-link li-design">
               <a href="/dashboard#" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">
-                <i class='bx bx-book-open icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Learning Resources"></i>
+                <i class='bx bx-home-alt icon' data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Learning Resources"></i>
                 <span class="text nav-text">Dashboard</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-dark ms-4">
@@ -167,8 +167,7 @@
               <span class="text nav-text">Speakers</span>
             </a>
           </li>
-          <% if( user.userType == "Admin"){
-            console.log(userSchool.userSchool)
+          <% if( user.userType == "Admin" || user.userType == "School Head"){
             %>
           <li class="nav-link li-design">
             <a href="/attended#" class="with-design " data-bs-toggle="dropdown" aria-expanded="false">

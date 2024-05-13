@@ -39,7 +39,6 @@ function socketRouter(io) {
     try {
       const users = await User.find({}, "userEmail"); // Retrieve all user emails
       return users.map((user) => user.userEmail); // Return an array of email addresses
-      console.log(users);
     } catch (err) {
       console.error("Error fetching user emails:", err);
       return [];
@@ -263,10 +262,10 @@ function socketRouter(io) {
   // Function to send an email notification to multiple recipients
   async function sendEmailNotificationNewUser(newUser) {
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: newUser.userEmail, // Join all email addresses with commas
       subject: `INMaestroLXP - Thank you for registering`, // Email subject
-      text: `Dear ${newUser.userName}. \n\nYou have successfully registered to INMaestroLXP: HUMAN RESOURCES DEVELOPMENT SYSTEM FOR EDUCATION PROFESSIONALS! \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
+      text: `Dear ${newUser.userName}.\n\nYou have successfully registered to INMaestroLXP: HUMAN RESOURCES DEVELOPMENT SYSTEM FOR EDUCATION PROFESSIONALS! \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
       \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
       `, // Email body
     };
@@ -373,6 +372,8 @@ function socketRouter(io) {
               userPass,
             });
 
+            sendEmailNotificationNewSchoolHeads(newUser)
+
             bcrypt.genSalt(10, (err, salt) => {
               bcrypt.hash(newUser.userPass, salt, (err, hash) => {
                 if (err) throw err;
@@ -397,6 +398,27 @@ function socketRouter(io) {
       res.status(500).send("Server Error");
     }
   });
+
+    // Function to send an email notification to multiple recipients
+    async function sendEmailNotificationNewSchoolHeads(newUser) {
+      const mailOptions = {
+        from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
+        to: newUser.userEmail, // Join all email addresses with commas
+        subject: `INMaestroLXP - Thank you for registering`, // Email subject
+        text: `Dear ${newUser.userName}.\n\nThe Admin has successfully registered you an account to INMaestroLXP: HUMAN RESOURCES DEVELOPMENT SYSTEM FOR EDUCATION PROFESSIONALS! \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
+        \n\n\n\n *** This is a system generated message DO NOT REPLY TO THIS EMAIL. ***
+        `, // Email body
+      };
+
+      EmailCheck.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+        } else {
+          console.log(`Email sent New User ${newUser.userName} :`, info.response);
+        }
+      });
+    }
+
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -447,7 +469,7 @@ function socketRouter(io) {
     }
 
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: recipientEmails.join(","), // Join all email addresses with commas
       subject: `New news has been posted by the Admin`, // Email subject
       text: `A new news item has been created:\n\nTitle: ${news.newsTitle}.\n\nGo check the website for more Information!
@@ -472,7 +494,7 @@ function socketRouter(io) {
       userSchool,
       newsImage: req.file ? req.file.filename : "", // Use the file name if provided
     });
-    io.emit("newNews", news);
+    io.emit("newSchoolNews", news);
     sendEmailNotificationSchoolNews(news);
 
     console.log(news);
@@ -497,7 +519,7 @@ function socketRouter(io) {
       }
 
       const mailOptions = {
-        from: process.env.EMAIL_USER, // Sender's email address
+        from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
         to: recipientEmails.join(","), // Join all email addresses with commas
         subject: `New School News!!`, // Email subject
         text: `A new school news item has been created:\n\nTitle: ${news.newsTitle}.\n\nGo check the website for more Information!
@@ -611,7 +633,7 @@ function socketRouter(io) {
       return;
     }
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: recipientEmails.join(","), // Join all email addresses with commas
       subject: `Admin Added New Learning Resources`, // Email subject
       text: `Good Day!! \n\nThe Admin - ${resources.whoAdded} added new learning resources go check it out. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
@@ -660,7 +682,7 @@ function socketRouter(io) {
       return;
     }
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: recipientEmails.join(","), // Join all email addresses with commas
       subject: `New Learning Resources Added`, // Email subject
       text: `Good Day!! \n\n ${resources.whoAdded} added new learning resources go check it out. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
@@ -878,7 +900,7 @@ function socketRouter(io) {
   // Function to send an email notification to multiple recipients
   async function sendEmailNotificationAddTeacherTraining(attended) {
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: attended.userEmail, // Join all email addresses with commas
       subject: `New Added Training`, // Email subject
       text: `Dear ${attended.userName}. \n\nYour School Head added your training kindly check and add your certificate. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
@@ -970,7 +992,7 @@ function socketRouter(io) {
 
   async function sendEmailNotificationAddDivisionTraining(attended) {
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: attended.userEmail, // Join all email addresses with commas
       subject: `New Added Training`, // Email subject
       text: `Dear ${attended.userName}. \n\nThe Admin added your training kindly check and add your certificate. \n\n\n Thank You. \n\n\n INMaestroLXP Developer.
@@ -1018,7 +1040,7 @@ function socketRouter(io) {
     }
 
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: recipientEmails.join(","), // Join all email addresses with commas
       subject: `New event has been posted by the Admin`, // Email subject
       text: `A new Event item has been created:\n\nTitle: ${event.createTitle}.\n\n Go check the website for more Information!
@@ -1064,7 +1086,7 @@ function socketRouter(io) {
     }
 
     const mailOptions = {
-      from: process.env.EMAIL_USER, // Sender's email address
+      from: '"INMaestroLXP" <' + process.env.EMAIL_USER + '>', // Sender's email address
       to: recipientEmails.join(","), // Join all email addresses with commas
       subject: `New School Event!!`, // Email subject
       text: `A new school event has been created:\n\nTitle: ${event.createTitle}.\n\n Go check the website for more Information!

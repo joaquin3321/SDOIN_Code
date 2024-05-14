@@ -276,14 +276,14 @@
     <div id="collapse<%= index %>" class="accordion-collapse collapse <%= isFirst ? 'show' : '' %>" aria-labelledby="heading<%= index %>" data-bs-parent="#accordionExample">
       <div class="accordion-body">
         <div class="card-body">
-          <div class="news_Title">
-            News Title: <b class="truncate"><%= item.newsTitle %></b>
+          <div class="news_Title mb-3 text-center">
+            <b class="truncate"><%= item.newsTitle %></b>
+          </div>
+          <div class="news_Content mb-3 text-center">
+            <%= item.newsContent %>
           </div>
           <div class="news_Content">
-            News Content: <b class="truncate"><%= item.newsContent %></b>
-          </div>
-          <div class="news_Content">
-            News Image:
+            
           </div>
           <div class="news_img">
             <span class="con">
@@ -332,13 +332,12 @@
       <div id="collapse${newsCount}" class="accordion-collapse collapse show" aria-labelledby="heading${newsCount}" data-bs-parent="#accordionExample">
         <div class="accordion-body">
           <div class="card-body">
-            <div class="news_Title">
-              News Title: <b class="truncate">${news.newsTitle}</b>
+            <div class="news_Title mb-3 text-center">
+              <b class="truncate">${news.newsTitle}</b>
             </div>
-            <div class="news_Content">
-              News Content: <b class="truncate">${news.newsContent}</b>
+            <div class="news_Content mb-3 text-center">
+              ${news.newsContent}
             </div>
-            <div class="news_Content">News Image:</div>
             <div class="news_img">
               <span class="con">
                 <img src="/public/news/${news.newsImage}" alt="" />

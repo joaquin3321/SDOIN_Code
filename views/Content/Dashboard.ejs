@@ -74,13 +74,14 @@
     /* Maintain aspect ratio */
   }
 </style>
+<%- include('../partials/messages.ejs')%>
 
 <% if( user.userType == "Admin"){ %>
 <div class="col-lg-12 news_list">
   <div class="card card-outline card-primary">
     <div class="card-header">
       <div class="card-tools">
-        <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#news_content"><i class="fa-solid fa-plus"></i> Add News</a>
+        <a href="/dashboardAdd" class="btn btn-block btn-sm btn-default btn-flat border-primary"><i class="fa-solid fa-plus"></i> Add News</a>
       </div>
     </div>
     <div class="card-body" style="overflow-y: auto;">
@@ -88,14 +89,12 @@
         <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
           Admin News List
         </h3>
-        <%- include('../partials/messages.ejs')%>
         <thead class="table-info">
           <tr>
             <th width="5%" class="text-center">#</th>
             <th width="22%">News Title</th>
-            <th>News Content</th>
-            <th>News Image</th>
-            <th style="text-align: center;" width="12%">Action</th>
+            <th width="12%">News Content</th>
+            <th style="text-align: center;" width="5%">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -114,20 +113,15 @@
                 <%= news.newsTitle %>
               </b>
             </td>
-            <td>
-              <%= news.newsContent %>
+            <td class="text-center">
+              <% news.newsImage.forEach(function(image) { %>
+              <img src="/public/news/<%= image %>" width="100" class="img-thumbnail mt-1" alt="">
+              <% }); %>
             </td>
             <td class="text-center">
-              <span class="newsImg">
-                <img src="/public/news/<%= news.newsImage %>" alt="">
-              </span>
-            </td>
-            <td class="text-center">
-              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit">
-                <a class="btn btn-outline-success view_news" data-bs-toggle="modal" data-bs-target="#edit_news" data-id="<%= news._id %>">
-                  <i class="fa-solid fa-pen-to-square"></i>
-                </a>
-              </div>
+              <a href="/action/GetNews2/<%= news._id %>" class="btn btn-outline-success">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
               <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
                 <a class="btn btn-outline-danger view_news" data-bs-toggle="modal" data-bs-target="#delete_news" data-id="<%= news._id %>">
                   <i class="fa-solid fa-trash"></i>
@@ -145,36 +139,6 @@
 <% }else { %>
 <div class="news_list"></div>
 <% } %>
-
-<!-- Edit News Modal -->
-<div class="modal fade" id="edit_news" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="staticBackdropLabel">Edit News</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
-      </div>
-      <div class="modal-body">
-        <div class="text-center" id="EditNewsLoader">
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-        <div class="" id="Edit_News">
-          <!-- The data from the UserAction will be shown here -->
-        </div>
-      </div>
-      <div class="modal-footer" id="modal-footer-edit">
-        <button type="button" class="btn btn-success" id="EditNews" onclick="EditNews('${userID}')">
-          Edit News
-        </button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Deletition of the News Modal -->
 <div class="modal fade" id="delete_news" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -202,46 +166,6 @@
           Cancel
         </button>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- New Content Modal -->
-<div class="modal fade" id="news_content" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="/users/addNews" method="POST" enctype="multipart/form-data">
-        <div class="modal-header">
-          <h5 class="modal-title" id="staticBackdropLabel">News Details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeButton"></button>
-        </div>
-        <div class="modal-body">
-          <div class="" id="content">
-
-            <div class="form-group">
-              <label class="control-label fw-bold">News Title:</label>
-              <input type="text" name="newsTitle" class="form-control form-control mb-3" placeholder="Title of the News" required />
-            </div>
-            <div class="form-group">
-              <label class="control-label fw-bold">News Content:</label>
-              <textarea name="newsContent" cols="30" rows="4" class="form-control mb-3" placeholder="Details of the news" required></textarea>
-            </div>
-            <div class="form-group">
-              <label class="control-label fw-bold">News Picture:</label>
-              <input type="file" name="newsImage" class="form-control form-control" accept="image/*" required />
-              <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer" id="modal-footer-news">
-          <button type="submit" class="btn btn-success">
-            Add News
-          </button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">
-            Cancel
-          </button>
-        </div>
-      </form>
     </div>
   </div>
 </div>
@@ -276,20 +200,35 @@
     <div id="collapse<%= index %>" class="accordion-collapse collapse <%= isFirst ? 'show' : '' %>" aria-labelledby="heading<%= index %>" data-bs-parent="#accordionExample">
       <div class="accordion-body">
         <div class="card-body">
-          <div class="news_Title mb-3 text-center">
+
+          <div class="news_Title text-center">
             <b class="truncate"><%= item.newsTitle %></b>
           </div>
-          <div class="news_Content mb-3 text-center">
-            <%= item.newsContent %>
+
+          <div class="news_Content px-2" style="text-align: justify;">
+            <%- item.newsContent %>
           </div>
-          <div class="news_Content">
-            
+
+          <div class="">
+            <div id="carouselExampleDark<%= index %>" class="carousel carousel-dark slide" data-bs-ride="carousel">
+              <div class="carousel-inner">
+                <% item.newsImage.forEach((image, index) => { %>
+                <div class="carousel-item <%= index === 0 ? 'active' : '' %>" data-bs-interval="10000">
+                  <img src="/public/news/<%= image %>" class="d-block w-100" alt="...">
+                </div>
+                <% }); %>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark<%= index %>" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark<%= index %>" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
           </div>
-          <div class="news_img">
-            <span class="con">
-              <img src="/public/news/<%= item.newsImage %>" alt="">
-            </span>
-          </div>
+
         </div>
       </div>
     </div>
@@ -297,16 +236,15 @@
   <% } %>
   <% }); %>
   <% if (itemCount === 0) { %>
-    <div class="text-center fw-bold" style="font-size: 100px;">NO ADMIN NEWS POSTED!!</div>
+  <div class="text-center fw-bold" style="font-size: 100px;">NO ADMIN NEWS POSTED!!</div>
   <% }%>
 </div>
 
+<!-- FOR REAL TIME UPDATE -->
+<!-- <div id="socketTest"></div> -->
 
 <!-- FOR REAL TIME UPDATE -->
-<div id="socketTest"></div>
-
-<!-- FOR REAL TIME UPDATE -->
-<script>
+<!-- <script>
   const socket = io();
 
   // Current count of news items
@@ -361,7 +299,7 @@
       }
     });
   });
-</script>
+</script> -->
 
 <!-- FOR REAL TIME DELETE -->
 <script>
@@ -406,13 +344,7 @@
           DeleteNews.setAttribute("onclick", `DeleteNews('${userID}')`);
         }
 
-        const EditNews = document.getElementById("EditNews");
-        if (EditNews) {
-          EditNews.setAttribute("onclick", `EditNews('${userID}')`);
-        }
-
         document.getElementById("DeleteNewsLoader").style.display = "block";
-        document.getElementById("EditNewsLoader").style.display = "block";
 
         try {
           const response = await fetch(`/action/GetNews/${userID}`);
@@ -423,25 +355,6 @@
           const newsContent = data.newsContent || "News Title";
 
           document.getElementById("DeleteNewsLoader").style.display = "none";
-          document.getElementById("EditNewsLoader").style.display = "none";
-
-          document.getElementById("Edit_News").innerHTML = `
-          <div style="font-size:20px;" class="mb-3"><b>Edit This News: <b style="color:green;"> ${newsTitle}</b></div>
-
-          <div class="form-group">
-              <label class="control-label fw-bold">News Title:</label>
-              <input type="text" id="newsTitle" class="form-control form-control mb-3" placeholder="Title of the News" value="${newsTitle}" required />
-            </div>
-            <div class="form-group">
-              <label class="control-label fw-bold">News Content:</label>
-              <textarea id="newsContent"  cols="30" rows="4" class="form-control mb-3" placeholder="Details of the news" required>${newsContent}</textarea>
-            </div>
-            <div class="form-group">
-              <label class="control-label fw-bold">News Picture:</label>
-              <input type="file" id="newsImage" class="form-control form-control" accept="image/*" />
-              <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span>
-            </div>
-        `;
 
           document.getElementById("Delete_News").innerHTML = `
           <div class="text-center" style="font-size:20px;">
@@ -451,7 +364,6 @@
         } catch (error) {
           // Hide loading spinner in case of an error
           document.getElementById("DeleteNewsLoader").style.display = "none";
-          document.getElementById("EditNewsLoader").style.display = "none";
           console.error(error);
         }
 
@@ -476,61 +388,6 @@
       console.error(error);
     }
   }
-  async function EditNews(userID) {
-    const newsTitleUpdate = document.getElementById("newsTitle").value;
-    const newsContentUpdate = document.getElementById("newsContent").value;
-
-    const newsImage = document.getElementById("newsImage");
-    const imgUpdate = newsImage.files[0];
-
-    const updateData = new FormData();
-    updateData.append("newsTitle", newsTitleUpdate);
-    updateData.append("newsContent", newsContentUpdate);
-
-    if (imgUpdate) {
-      updateData.append("newsImage", imgUpdate);
-    }
-
-    Swal.fire({
-        title: "Are you sure you want to Update this news?",
-        showCancelButton: true,
-        showConfirmButton: true,
-        confirmButtonText: "Yes, update it",
-        confirmButtonColor: "#198754",
-        cancelButtonText: "No, cancel",
-        icon: "question",
-        dangerMode: true,
-      })
-      .then(async (willUpdate) => {
-        if (willUpdate.isConfirmed) {
-          try {
-            const response = await fetch(`/action/Edit_News/${userID}`, {
-              method: "PATCH",
-              body: updateData, // Use FormData directly instead of JSON.stringify
-            });
-
-            if (!response.ok) {
-              throw new Error(`Failed to update document: ${response.statusText}`);
-            }
-
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-              const responseData = await response.json();
-              console.log(responseData);
-
-              // Handle the response data as needed
-              location.reload();
-            } else {
-              // Handle non-JSON response here if needed
-              console.error("Server response is not in JSON format");
-            }
-          } catch (error) {
-            console.error(error);
-          }
-        } else {
-          Swal.fire("Update canceled", "", "info");
-        }
-      });
-  }
 </script>
+
 <%- include('../ui/footer2.ejs') %>

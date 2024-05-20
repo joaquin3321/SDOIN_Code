@@ -117,7 +117,7 @@ function socketRouter(io) {
         return res.redirect("/"); // Redirect to a suitable page
       }
       // If the logout was successful, redirect to another page or show a message
-      req.flash("success_msg", "You are logged out");
+      req.flash("success_msg2", "You are logged out");
       res.redirect("/login"); // Redirect to the login page
     });
   });
@@ -128,6 +128,16 @@ function socketRouter(io) {
   router.get("/cancel", (req, res) => {
     req.flash("success_msg", "Cancel Successfully");
     res.redirect("/CreateAccount");
+  });
+
+  router.get("/cancelNews", (req, res) => {
+    req.flash("success_msg", "Cancel Successfully");
+    res.redirect("/dashboard");
+  });
+
+  router.get("/cancelSchoolNews", (req, res) => {
+    req.flash("success_msg", "Cancel Successfully");
+    res.redirect("/SchoolDashboard");
   });
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,7 +244,7 @@ function socketRouter(io) {
                   .save()
                   .then((user) => {
                     req.flash(
-                      "success_msg",
+                      "success_msg2",
                       "You Can Now Successfully Log-in!!"
                     );
                     res.redirect("/login");
@@ -434,15 +444,18 @@ function socketRouter(io) {
 
   var uploadNews = multer({
     storage: storage,
-  }).single("newsImage");
+  }).array('newsImage', 15);
 
   //Handles of adding news to the Users
   router.post("/addNews", uploadNews, async (req, res) => {
+
     const { newsTitle, newsContent } = req.body;
+    const newsImages = req.files ? req.files.map(file => file.filename) : [];
+
     const news = new NewsContent({
       newsTitle,
       newsContent,
-      newsImage: req.file ? req.file.filename : "", // Use the file name if provided
+      newsImage: newsImages, // Use the file name if provided
     });
     io.emit("newNews", news);
     sendEmailNotificationNews(news);
@@ -488,11 +501,12 @@ function socketRouter(io) {
 
   router.post("/addSchoolNews", uploadNews, async (req, res) => {
     const { newsTitle, newsContent, userSchool } = req.body;
+    const newsImages = req.files ? req.files.map(file => file.filename) : [];
     const news = new NewsContent({
       newsTitle,
       newsContent,
       userSchool,
-      newsImage: req.file ? req.file.filename : "", // Use the file name if provided
+      newsImage: newsImages, // Use the file name if provided
     });
     io.emit("newSchoolNews", news);
     sendEmailNotificationSchoolNews(news);
@@ -1011,14 +1025,28 @@ function socketRouter(io) {
       }
     });
   }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "/SDOIN_Code/public/event-poster");
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
+    },
+  });
 
-  router.post("/addEvent", async (req, res) => {
+  var uploadPoster = multer({
+    storage: storage,
+  }).single('createPoster');
+
+  router.post("/addEvent", uploadPoster, async (req, res) => {
     const { createTitle, createDetails, createStart, createEnd } = req.body;
     const event = new Event({
       createTitle,
       createDetails,
       createStart,
       createEnd,
+      createPoster: req.file ? req.file.filename : "",
     });
     console.log(event);
     sendEmailNotificationEvent(event);
@@ -1028,6 +1056,10 @@ function socketRouter(io) {
       console.error(err);
       return res.status(500).json({ message: err.message, type: "danger" });
     }
+    req.flash(
+      "success_msg",
+      `Event Created Successfully.`
+    );
     return res.redirect("/calendar");
   });
 
@@ -1057,7 +1089,7 @@ function socketRouter(io) {
     });
   }
 
-  router.post("/addSchoolEvent", async (req, res) => {
+  router.post("/addSchoolEvent", uploadPoster, async (req, res) => {
     const { createTitle, createDetails, createStart, createEnd, userSchool } = req.body;
     const event = new Event({
       createTitle,
@@ -1065,6 +1097,7 @@ function socketRouter(io) {
       createStart,
       createEnd,
       userSchool,
+      createPoster: req.file ? req.file.filename : "",
     });
     console.log(event);
     sendEmailNotificationSchoolEvent(event);
@@ -1074,6 +1107,10 @@ function socketRouter(io) {
       console.error(err);
       return res.status(500).json({ message: err.message, type: "danger" });
     }
+    req.flash(
+      "success_msg",
+      `Event Created Successfully.`
+    );
     return res.redirect("/SchoolCalendar");
   });
 

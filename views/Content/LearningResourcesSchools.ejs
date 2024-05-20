@@ -57,7 +57,7 @@
             <th width="5%" class="text-center">#</th>
             <th>Title</th>
             <th style="text-align: center;" width="20%">Who Added</th>
-            <th style="text-align: center;" width="25%">File</th>
+            <th style="text-align: center;" width="10%">Resources</th>
             <th style="text-align: center;" width="12%">Action</th>
           </tr>
         </thead>
@@ -80,7 +80,7 @@
               <%= resources.whoAdded %>
             </td>
             <td>
-              <b class="truncate"><a href="/public/resources/<%= resources.resourcesFile %>" target="_blank" class="form-control btn btn-success"><i class="fa-solid fa-file-pdf"></i> View Resources File</a></b>
+              <b class="truncate"><a href="/public/resources/<%= resources.resourcesFile %>" target="_blank" class="form-control btn btn-success"><i class="fa-solid fa-file-pdf"></i> View</a></b>
             </td>
             <td class="text-center">
               <% if( resources.whoAdded === CurrentlyLoggedIn ){ %>

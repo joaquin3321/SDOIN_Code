@@ -10,9 +10,9 @@
 </div>
 <% }); %> <% } %>
 
-<% if(success_msg != ''){ %>
+<% if(success_msg2 != ''){ %>
 <div class="alert alert-success alert-dismissible fade show" role="alert">
-  <%- success_msg %>
+  <%- success_msg2 %>
   <button
     type="button"
     class="btn-close"
@@ -21,18 +21,28 @@
   ></button>
 </div>
 <% } %>
-
-<% if(error_msg != ''){ %>
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-  <%= error_msg %>
-  <button
-    type="button"
-    class="btn-close"
-    data-bs-dismiss="alert"
-    aria-label="Close"
-  ></button>
-</div>
-<% } %>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const successMsg = "<%- success_msg %>";
+      const errorMsg = "<%- error_msg %>";
+      if (successMsg) {
+        Swal.fire({
+          html: successMsg,
+          title: "Success!",
+          // text: successMsg,
+          icon: "success"
+        });
+      }
+      if (errorMsg) {
+        Swal.fire({
+          html: errorMsg,
+          title: "Error!",
+          // text: successMsg,
+          icon: "error"
+        });
+      }
+    });
+</script>
 
 <% if(error != ''){ %>
 <div class="alert alert-danger alert-dismissible fade show" role="alert">

@@ -1,0 +1,100 @@
+<%- include('../ui/sidebar2.ejs') %>
+<title>Update News</title>
+
+<style>
+  .news_list {
+    padding: 60px 30px;
+    margin-top: 10px;
+    /* margin-bottom: -50px; */
+  }
+
+  .large-checkbox {
+    transform: scale(1.5);
+    /* Increase the checkbox size */
+    margin-right: 10px;
+    /* Add a bit of spacing */
+    margin-top: 10px;
+  }
+
+  .larger-font {
+    font-size: 1.5em;
+  }
+</style>
+
+<div class="col-lg-12 news_list">
+  <div class="card card-outline card-primary">
+    <div class="card-header">
+      <div class="card-tools">
+        <!-- <a class="btn btn-block btn-sm btn-default btn-flat border-primary" data-bs-toggle="modal" data-bs-target="#news_content"><i class="fa-solid fa-plus"></i> Add News</a> -->
+      </div>
+    </div>
+    <div class="card-body" style="overflow-y: auto;">
+      <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
+        Update News Details
+      </h3>
+      <form action="/action/Edit_News/<%= news._id %>" id="editedNews" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="control-label fw-bold">News Title:</label>
+          <input type="text" id="newsTitle" name="newsTitle" class="form-control form-control mb-3" value="<%= news.newsTitle%>" required />
+        </div>
+        <div class="form-group">
+          <label class="control-label fw-bold">News Content:</label>
+          <textarea name="newsContent" cols="30" rows="4" class="form-control mb-3 summernote" placeholder="Details of the news" required><%- news.newsContent%></textarea>
+        </div>
+        <div class="form-group">
+          <label class="control-label fw-bold mt-3">News Picture:</label>
+          <input type="file" name="newsImage" class="form-control form-control" multiple accept="image/*" />
+          <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span><br>
+
+          <% news.newsImage.forEach(function(image) { %>
+          <img src="/public/news/<%= image %>" width="100" class="img-thumbnail mt-1" alt="">
+          <% }); %>
+
+        </div>
+
+        <div style="float: right;">
+          <button type="button" id="editNewsButton" class="btn btn-success">
+            Update News
+          </button>
+          <% if( user.userType == "Admin" ){%>
+            <a href="/users/cancelNews" type="button" class="btn btn-secondary">
+              Cancel
+            </a>
+          <% }%>
+          <% if( user.userType == "School Head" ){%>
+            <a href="/users/cancelSchoolNews" type="button" class="btn btn-secondary">
+              Cancel
+            </a>
+          <% }%>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('editNewsButton').addEventListener('click', function(event) {
+    const newsTitle = document.getElementById("newsTitle").value;
+    event.preventDefault(); // Prevent the default form submission
+
+    Swal.fire({
+      title: `Are you sure you want to update this news: <b style="color:#198754;">\n${newsTitle}?</b>`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, update it",
+      confirmButtonColor: "#198754",
+      cancelButtonText: "No, cancel",
+      dangerMode: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // If confirmed, submit the form programmatically
+        document.getElementById('editedNews').submit();
+      } else {
+        Swal.fire("Update canceled", "", "info");
+      }
+    });
+  });
+</script>
+
+
+<%- include('../ui/footer2.ejs') %>

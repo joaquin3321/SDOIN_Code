@@ -38,6 +38,7 @@
 
   }
 </style>
+<%- include('../partials/messages.ejs')%>
 <!-- Show Learning Resources -->
 <div class="col-lg-12 conducted">
   <div class="card card-outline card-primary">
@@ -53,11 +54,10 @@
         <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
           Conducted Trainings List
         </h3>
-        <%- include('../partials/messages.ejs')%>
         <thead class="table-info">
           <tr>
             <th width="5%" class="text-center">#</th>
-            <th>Program of Activity</th>
+            <th>Program Owner</th>
             <th>Title of Activity</th>
             <th>Output</th>
             <th>Date Conducted</th>
@@ -385,7 +385,7 @@
                       <input type="text" class="form-control form-control mb-3" id="getRemarks" placeholder="Remarks" value="${remarks}" disabled/>
                     </div>
                     <div class="form-group">
-                      <label class="control-label fw-bold">Export Button:</label>
+                      <label class="control-label fw-bold"></label>
                       <button class="form-control btn btn-success" id="export-excel">Export as Excel</button>
                     </div>
                   </div>

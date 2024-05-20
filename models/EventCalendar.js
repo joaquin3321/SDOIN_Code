@@ -17,6 +17,9 @@ const EventCalendar = new mongoose.Schema({
     type: String,
     required: true
   },
+  createPoster:{
+    type: String,
+  },
   userSchool: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'School_List',

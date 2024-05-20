@@ -15,6 +15,7 @@ const TrainingConducted = require("../models/TrainingsConducted");
 const TrainingAttended = require("../models/TrainingsAttended");
 const School_List = require("../models/SchoolList");
 const Event = require("../models/EventCalendar");
+const { ensureAuthenticated, forwardAuthenticated } = require("../config/auth");
 
 function socketRouter(io) {
   const router = express.Router();
@@ -46,6 +47,7 @@ function socketRouter(io) {
       if (req.file) {
         updateData.userProfile = req.file.filename;
       }
+
       if (updateData.userSchool === null) {
         delete updateData.userSchool; // Keeps the original value
       }
@@ -72,16 +74,16 @@ function socketRouter(io) {
             userSchool: updateData.userSchool,
             userDepartment: updateData.userDepartment,
             userEmail: updateData.userEmail,
-          }
+          },
         }
       );
 
-      const updatedLearningResources= await LearningResources.updateMany(
+      const updatedLearningResources = await LearningResources.updateMany(
         { whoAdded: userName },
         {
           $set: {
             whoAdded: updateData.userName,
-          }
+          },
         }
       );
 
@@ -93,12 +95,17 @@ function socketRouter(io) {
             "success_msg",
             `User's Password Updated Successfully. User Name: <b>${updatedUser.userName}</b>`
           );
+          console.log("User's Password Updated Successfully");
         }
-
-        console.log("User's Password Updated Successfully");
+        req.flash("success_msg", `Credential Updated Successfully.`);
 
         // You can send a JSON response or redirect as needed
-        res.status(200).json({ success: true, updatedUser, updatedTrainingAttended, updatedLearningResources });
+        res.status(200).json({
+          success: true,
+          updatedUser,
+          updatedTrainingAttended,
+          updatedLearningResources,
+        });
       }
     } catch (err) {
       console.error(err);
@@ -266,9 +273,7 @@ function socketRouter(io) {
       );
 
       if (!updated) {
-        res
-          .status(404)
-          .json({ success: false, message: "Document not found" });
+        res.status(404).json({ success: false, message: "Document not found" });
       } else {
         req.flash(
           "success_msg",
@@ -281,10 +286,9 @@ function socketRouter(io) {
       console.error(err);
       res.status(500).json({ success: false, message: "Server Error" });
     }
-  }
-);
+  });
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //File Upload for the News Images
   var storage = multer.diskStorage({
@@ -298,15 +302,63 @@ function socketRouter(io) {
 
   var uploadNews = multer({
     storage: storage,
-  }).single("newsImage");
+  }).array("newsImage", 15);
 
-  router.patch("/Edit_News/:newsID", uploadNews, async (req, res) => {
+  // router.patch("/Edit_News/:newsID", uploadNews, async (req, res) => {
+  //   try {
+  //     const newsID = req.params.newsID;
+  //     const updateData = req.body;
+  //     // Use the file name if provided
+  //     if (req.file) {
+  //       updateData.newsImage = req.file ? req.file.filename : "";
+  //     }
+
+  //     console.log(updateData);
+  //     const updatedDoc = await NewsContent.findByIdAndUpdate(
+  //       newsID,
+  //       updateData,
+  //       {
+  //         new: true,
+  //       }
+  //     );
+
+  //     if (!updatedDoc) {
+  //       res.status(404).json({ success: false, message: "Document not found" });
+  //     } else {
+  //       req.flash(
+  //         "success_msg",
+  //         `News Updated Successfully. News Title: <b>${updateData.newsTitle}</b>`
+  //       );
+  //       console.log("News Updated Successfully");
+  //       res.status(200).json({ success: true, updatedDoc });
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     res.status(500).json({ success: false, message: "Server Error" });
+  //   }
+  // });
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  router.post("/Edit_News/:newsID", uploadNews, async (req, res) => {
     try {
       const newsID = req.params.newsID;
-      const updateData = req.body;
-      // Use the file name if provided
-      if (req.file) {
-        updateData.newsImage = req.file ? req.file.filename : "";
+      const userType = req.user.userType;
+
+      const { newsTitle, newsContent } = req.body;
+      const newsImages = req.files
+        ? req.files.map((file) => file.filename)
+        : [];
+
+      // Prepare the update data
+      const updateData = {
+        newsTitle,
+        newsContent,
+      };
+
+      // Use the file names if provided
+      if (newsImages.length > 0) {
+        updateData.newsImage = newsImages; // Assuming newsImage is an array field
       }
 
       console.log(updateData);
@@ -323,20 +375,24 @@ function socketRouter(io) {
       } else {
         req.flash(
           "success_msg",
-          `News Updated Successfully. News Title: <b>${updateData.newsTitle}</b>`
+          `News Updated Successfully. News Title: <b>${newsTitle}</b>`
         );
+        if (userType === "Admin") {
+          return res.redirect("/dashboard");
+        } else{
+          return res.redirect("/SchoolDashboard");
+        }
         console.log("News Updated Successfully");
         res.status(200).json({ success: true, updatedDoc });
       }
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: "Server Error" });
     }
   });
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  router.get("/GetNews/:newsID", async (req, res) => {
+  router.get("/GetNews/:newsID", ensureAuthenticated, async (req, res) => {
     try {
       const newsID = req.params.newsID;
       const news = await NewsContent.findById(newsID);
@@ -349,6 +405,38 @@ function socketRouter(io) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Server Error" });
+    }
+  });
+
+  router.get("/GetNews2/:newsID", ensureAuthenticated, async (req, res) => {
+    try {
+      const newsID = req.params.newsID;
+      const userID = req.user._id; //Unique ID of the user
+
+      const user = await User.findById(userID, "userSchool").populate(
+        "userSchool",
+        "SchoolName"
+      );
+
+      const SchoolName = {
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      };
+      const SameSchool = {
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      };
+      const userSchool = await School_List.find({}, "SchoolName");
+      const news = await NewsContent.findById(newsID);
+
+      res.render("Content/DashboardEdit", {
+        user: req.user,
+        userSchool: SchoolName,
+        news: news,
+        userSchoolList: userSchool,
+        SameSchool: SameSchool.userSchool,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server Error");
     }
   });
 
@@ -366,11 +454,19 @@ function socketRouter(io) {
           .json({ success: false, message: "News item not found" });
       }
 
-      // Construct the absolute paths to the files (assuming newsItem has imagePath property)
-      const imagePath = `/SDOIN_Code/public/news/${newsItem.newsImage}`;
+      // Construct the absolute paths to the files and delete them
+      const deletePromises = newsItem.newsImage.map(async (image) => {
+        const imagePath = `/SDOIN_Code/public/news/${image}`;
+        try {
+          await fs.unlink(imagePath);
+        } catch (err) {
+          console.error(`Error deleting file ${imagePath}:`, err);
+          // Continue with the deletion process even if one file fails to delete
+        }
+      });
 
-      // Delete the actual files from the server
-      await fs.unlink(imagePath);
+      // Wait for all delete operations to complete
+      await Promise.all(deletePromises);
 
       // Remove the document from the database
       const deletedRow = await NewsContent.findByIdAndRemove(newsID);
@@ -691,86 +787,96 @@ function socketRouter(io) {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  router.get("/Get_Personal_Attended/:AttendID/:PersonalAttendedID", async (req, res) => {
-    try {
-      const AttendID = req.params.AttendID;
-      const PersonalAttendedID = req.params.PersonalAttendedID;
+  router.get(
+    "/Get_Personal_Attended/:AttendID/:PersonalAttendedID",
+    async (req, res) => {
+      try {
+        const AttendID = req.params.AttendID;
+        const PersonalAttendedID = req.params.PersonalAttendedID;
 
-      const attended_ID = await TrainingAttended.findById(AttendID);
+        const attended_ID = await TrainingAttended.findById(AttendID);
 
-      if (!attended_ID) {
-        return res.status(404).json({ error: "Training not found" });
+        if (!attended_ID) {
+          return res.status(404).json({ error: "Training not found" });
+        }
+
+        // Find the department within the array based on deptId
+        const attendedData = attended_ID.credential.find(
+          (file) => file._id.toString() === PersonalAttendedID
+        );
+
+        if (!attendedData) {
+          return res.status(404).json({ error: "Training Not Found" });
+        }
+
+        res.json(attendedData);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server Error" });
       }
-
-      // Find the department within the array based on deptId
-      const attendedData = attended_ID.credential.find(file => file._id.toString() === PersonalAttendedID);
-
-      if (!attendedData) {
-        return res.status(404).json({ error: "Training Not Found" });
-      }
-
-      res.json(attendedData);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Server Error" });
     }
-  });
+  );
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  router.delete("/Delete_Personal_Attended/:AttendID/:PersonalAttendedID", async (req, res) => {
-    try {
-      const AttendID = req.params.AttendID;
-      const PersonalAttendedID = req.params.PersonalAttendedID;
+  router.delete(
+    "/Delete_Personal_Attended/:AttendID/:PersonalAttendedID",
+    async (req, res) => {
+      try {
+        const AttendID = req.params.AttendID;
+        const PersonalAttendedID = req.params.PersonalAttendedID;
 
-      // Fetch the credential document to get the file path
-      const credentialDocument = await TrainingAttended.findOne({
-        _id: AttendID,
-        "credential._id": PersonalAttendedID
-      });
+        // Fetch the credential document to get the file path
+        const credentialDocument = await TrainingAttended.findOne({
+          _id: AttendID,
+          "credential._id": PersonalAttendedID,
+        });
 
-      if (!credentialDocument) {
-        return res.status(404).send("Row not found");
-      }
-
-      // Get the file path from the credential document
-      const fileName = credentialDocument.credential.find(cred => cred._id.toString() === PersonalAttendedID).trainingCertificate;
-      const filePath = `/SDOIN_Code/public/attended/${fileName}`;
-
-      // Delete the actual files from the server if the paths are not empty
-      const deletePromises = [];
-
-      // Check if speaker.speakerImage is not empty and file exists
-      if (fileName) {
-        try {
-          await fs.access(filePath);
-          deletePromises.push(fs.unlink(filePath));
-        } catch (error) {
-          console.log(`Image file not found: ${error.message}`);
+        if (!credentialDocument) {
+          return res.status(404).send("Row not found");
         }
+
+        // Get the file path from the credential document
+        const fileName = credentialDocument.credential.find(
+          (cred) => cred._id.toString() === PersonalAttendedID
+        ).trainingCertificate;
+        const filePath = `/SDOIN_Code/public/attended/${fileName}`;
+
+        // Delete the actual files from the server if the paths are not empty
+        const deletePromises = [];
+
+        // Check if speaker.speakerImage is not empty and file exists
+        if (fileName) {
+          try {
+            await fs.access(filePath);
+            deletePromises.push(fs.unlink(filePath));
+          } catch (error) {
+            console.log(`Image file not found: ${error.message}`);
+          }
+        }
+
+        // Remove the credential from the document
+        const deletedRow = await TrainingAttended.findByIdAndUpdate(
+          AttendID,
+          { $pull: { credential: { _id: PersonalAttendedID } } },
+          { new: true }
+        );
+
+        if (!deletedRow) {
+          res.status(404).send("Row not found");
+        } else {
+          req.flash("success_msg", "Training Deleted Successfully");
+          console.log("Training Deleted Successfully");
+
+          // Send a success response to the client
+          res.status(200).json({ success: true });
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
       }
-
-      // Remove the credential from the document
-      const deletedRow = await TrainingAttended.findByIdAndUpdate(
-        AttendID,
-        { $pull: { credential: { _id: PersonalAttendedID } } },
-        { new: true }
-      );
-
-      if (!deletedRow) {
-        res.status(404).send("Row not found");
-      } else {
-        req.flash("success_msg", "Training Deleted Successfully");
-        console.log("Training Deleted Successfully");
-
-        // Send a success response to the client
-        res.status(200).json({ success: true });
-      }
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server Error");
     }
-  });
+  );
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -800,7 +906,10 @@ function socketRouter(io) {
       if (!deletedRow) {
         res.status(404).send("Row not found");
       } else {
-        req.flash("success_msg", "Teacher Conducted Training Deleted Successfully");
+        req.flash(
+          "success_msg",
+          "Teacher Conducted Training Deleted Successfully"
+        );
         console.log("Teacher Conducted Training Deleted Successfully");
 
         // Send a success response to the client
@@ -826,49 +935,59 @@ function socketRouter(io) {
     storage: storage,
   }).single("trainingCertificate");
 
-  router.patch("/Edit_Personal_Attended/:AttendID/:PersonalAttendedID", uploadCertificate, async (req, res) => {
-    try {
-      const AttendID = req.params.AttendID;
-      const PersonalAttendedID = req.params.PersonalAttendedID;
-      const updateData = req.body;
-      console.log(updateData)
+  router.patch(
+    "/Edit_Personal_Attended/:AttendID/:PersonalAttendedID",
+    uploadCertificate,
+    async (req, res) => {
+      try {
+        const AttendID = req.params.AttendID;
+        const PersonalAttendedID = req.params.PersonalAttendedID;
+        const updateData = req.body;
+        console.log(updateData);
 
-      if (req.file) {
-        updateData.trainingCertificate = req.file ? req.file.filename : "";
-      }
-
-      const updatedDoc = await TrainingAttended.findOneAndUpdate(
-        {
-          _id: AttendID,
-          "credential._id": PersonalAttendedID,
-        },
-        {
-          $set: {
-            "credential.$.trainingTitle": updateData.trainingTitle,
-            "credential.$.trainingCertificate": updateData.trainingCertificate,
-            "credential.$.trainingStart": updateData.trainingStart,
-            "credential.$.trainingEnd": updateData.trainingEnd,
-            "credential.$.trainingSponsor": updateData.trainingSponsor,
-            "credential.$.trainingHours": updateData.trainingHours,
-            "credential.$.trainingLevel": updateData.trainingLevel,
-          },
-        },
-        {
-          new: true,
+        if (req.file) {
+          updateData.trainingCertificate = req.file ? req.file.filename : "";
         }
-      );
 
-      if (!updatedDoc) {
-        res.status(404).json({ success: false, message: "Training Attended not Found" });
-      } else {
-        req.flash("success_msg", `Training Attended Updated Successfully: <b>${updateData.trainingTitle}</b>`);
-        res.status(200).json({ success: true, updatedDoc });
+        const updatedDoc = await TrainingAttended.findOneAndUpdate(
+          {
+            _id: AttendID,
+            "credential._id": PersonalAttendedID,
+          },
+          {
+            $set: {
+              "credential.$.trainingTitle": updateData.trainingTitle,
+              "credential.$.trainingCertificate":
+                updateData.trainingCertificate,
+              "credential.$.trainingStart": updateData.trainingStart,
+              "credential.$.trainingEnd": updateData.trainingEnd,
+              "credential.$.trainingSponsor": updateData.trainingSponsor,
+              "credential.$.trainingHours": updateData.trainingHours,
+              "credential.$.trainingLevel": updateData.trainingLevel,
+            },
+          },
+          {
+            new: true,
+          }
+        );
+
+        if (!updatedDoc) {
+          res
+            .status(404)
+            .json({ success: false, message: "Training Attended not Found" });
+        } else {
+          req.flash(
+            "success_msg",
+            `Training Attended Updated Successfully: <b>${updateData.trainingTitle}</b>`
+          );
+          res.status(200).json({ success: true, updatedDoc });
+        }
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server Error" });
       }
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: "Server Error" });
     }
-  });
+  );
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -890,37 +1009,34 @@ function socketRouter(io) {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  router.patch( "/Edit_Conducted/:conductedID", async (req, res) => {
-      try {
-        const conductedID = req.params.conductedID;
-        const updateData = req.body;
-        console.log(updateData);
-        const updated = await TrainingConducted.findByIdAndUpdate(
-          conductedID,
-          updateData,
-          {
-            new: true,
-          }
-        );
-
-        if (!updated) {
-          res
-            .status(404)
-            .json({ success: false, message: "Document not found" });
-        } else {
-          req.flash(
-            "success_msg",
-            `Conducted Training Updated Successfully. Training Title: <b>${updated.titleActivity}</b>`
-          );
-          console.log("Conducted Training Updated Successfully");
-          res.status(200).json({ success: true, updated });
+  router.patch("/Edit_Conducted/:conductedID", async (req, res) => {
+    try {
+      const conductedID = req.params.conductedID;
+      const updateData = req.body;
+      console.log(updateData);
+      const updated = await TrainingConducted.findByIdAndUpdate(
+        conductedID,
+        updateData,
+        {
+          new: true,
         }
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: "Server Error" });
+      );
+
+      if (!updated) {
+        res.status(404).json({ success: false, message: "Document not found" });
+      } else {
+        req.flash(
+          "success_msg",
+          `Conducted Training Updated Successfully. Training Title: <b>${updated.titleActivity}</b>`
+        );
+        console.log("Conducted Training Updated Successfully");
+        res.status(200).json({ success: true, updated });
       }
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: "Server Error" });
     }
-  );
+  });
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -947,7 +1063,7 @@ function socketRouter(io) {
   router.get("/events", async (req, res) => {
     try {
       // Fetch events from the database
-      const events = await Event.find({userSchool: null});
+      const events = await Event.find({ userSchool: null });
       res.json(events);
     } catch (error) {
       console.error(error);
@@ -960,14 +1076,13 @@ function socketRouter(io) {
     try {
       const sameSchool = req.user.userSchool;
       // Fetch events from the database
-      const events = await Event.find({userSchool: sameSchool});
+      const events = await Event.find({ userSchool: sameSchool });
       res.json(events);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
-
 
   router.get("/getEvent/:eventID", async (req, res) => {
     try {
@@ -990,18 +1105,12 @@ function socketRouter(io) {
       const eventID = req.params.eventID;
       const updateData = req.body;
 
-      const updated = await Event.findByIdAndUpdate(
-        eventID,
-        updateData,
-        {
-          new: true,
-        }
-      );
+      const updated = await Event.findByIdAndUpdate(eventID, updateData, {
+        new: true,
+      });
 
       if (!updated) {
-        res
-          .status(404)
-          .json({ success: false, message: "Document not found" });
+        res.status(404).json({ success: false, message: "Document not found" });
       } else {
         req.flash(
           "success_msg",
@@ -1014,28 +1123,52 @@ function socketRouter(io) {
       console.error(err);
       res.status(500).json({ success: false, message: "Server Error" });
     }
-  }
-);
+  });
 
-router.delete("/deleteEvent/:eventID", async (req, res) => {
-  try {
-    const eventID = req.params.eventID;
-    const deletedRow = await Event.findByIdAndRemove(eventID);
+  router.delete("/deleteEvent/:eventID", async (req, res) => {
+    try {
+      const eventID = req.params.eventID;
 
-    if (!deletedRow) {
-      res.status(404).send("Row not found");
-    } else {
-      req.flash("success_msg", "Event Deleted Successfully");
-      console.log("Event Deleted Successfully");
+      // Retrieve the news information from the database
+      const eventItem = await Event.findById(eventID);
+      if (!eventItem) {
+        return res
+          .status(404)
+          .json({ success: false, message: "News item not found" });
+      }
 
-      // Send a success response to the client
-      res.status(200).json({ success: true });
+      // Construct the absolute paths to the files (assuming newsItem has imagePath property)
+      const filepath = `/SDOIN_Code/public/event-poster/${eventItem.createPoster}`;
+
+      // Delete the actual files from the server
+      try {
+        await fs.access(filepath);
+        await fs.unlink(filepath);
+        console.log(`Deleted file: ${filepath}`);
+      } catch (err) {
+        // If the file doesn't exist, log the error but proceed
+        if (err.code !== "ENOENT") {
+          throw err; // Throw error if it's something other than 'file not found'
+        }
+        console.log(`File not found, skipping deletion: ${filepath}`);
+      }
+
+      const deletedRow = await Event.findByIdAndRemove(eventID);
+
+      if (!deletedRow) {
+        res.status(404).send("Row not found");
+      } else {
+        req.flash("success_msg", "Event Deleted Successfully");
+        console.log("Event Deleted Successfully");
+
+        // Send a success response to the client
+        res.status(200).json({ success: true });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server Error");
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Server Error");
-  }
-});
+  });
 
   return router;
 }

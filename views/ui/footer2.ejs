@@ -1,6 +1,22 @@
 </div>
 </section>
-
+<script>
+  $(document).ready(function() {
+    $('.summernote').summernote({
+      height: 300,
+      toolbar: [
+        // [ 'style', [ 'style' ] ],
+        ['font', ['bold', 'italic', 'underline']],
+        ['fontname', ['fontname']],
+        ['fontsize', ['fontsize']],
+        ['color', ['color']],
+        ['para', ['ol', 'ul', 'paragraph']],
+        ['view', ['undo', 'redo']]
+      ]
+    })
+    $('.dropdown-toggle').dropdown();
+  })
+</script>
 <!-- <script>
   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
   const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -75,7 +91,8 @@
     sidebar.classList.toggle("close");
   })
 </script>
-
+<!-- Summernote JS - CDN Link -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <!-- DataTable JS -->
 
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>

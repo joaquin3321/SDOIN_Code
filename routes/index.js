@@ -44,9 +44,31 @@ function socketRouter(io) {
     } else {
       // User is not an admin, respond with an error or redirect to an unauthorized page
       req.flash("error_msg", "Error!! Cannot Access the Site!!");
-      res.redirect("/Dashboard");
+      res.redirect("/dashboard");
     }
   };
+  const isSchoolHead = (req, res, next) => {
+    if (req.user && req.user.userType === "School Head") {
+      // User is an admin, proceed to the next middleware or route handler
+      next();
+    } else {
+      // User is not an admin, respond with an error or redirect to an unauthorized page
+      req.flash("error_msg", "Error!! Cannot Access the Site!!");
+      res.redirect("/dashboard");
+    }
+  };
+
+  const isBoth = (req, res, next) => {
+    if (req.user && req.user.userType === "Admin" || req.user.userType === "School Head") {
+      // User is an admin, proceed to the next middleware or route handler
+      next();
+    } else {
+      // User is not an admin, respond with an error or redirect to an unauthorized page
+      req.flash("error_msg", "Error!! Cannot Access the Site!!");
+      res.redirect("/dashboard");
+    }
+  };
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   //Login ROUTE
@@ -153,6 +175,43 @@ function socketRouter(io) {
       }));
 
       res.render("Content/Dashboard", {
+        user: req.user,
+        userSchool: SchoolName,
+        news: newsList,
+        userSchoolList: userSchool,
+        SameSchool: SameSchool.userSchool,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server Error");
+    }
+  });
+
+  router.get("/dashboardAdd", ensureAuthenticated, isBoth, async (req, res) => {
+    try {
+      const userID = req.user._id; //Unique ID of the user
+      const user = await User.findById(userID, "userSchool").populate(
+        "userSchool",
+        "SchoolName"
+      );
+      const SchoolName = {
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      };
+      const SameSchool = {
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      };
+      const userSchool = await School_List.find({}, "SchoolName");
+      const news = await NewsContent.find(
+        {},
+        "_id newsTitle newsContent newsImage"
+      ).populate("userSchool", "SchoolName");
+
+      const newsList = news.map((user) => ({
+        ...user.toObject(),
+        userSchool: user.userSchool ? user.userSchool.SchoolName : null,
+      }));
+
+      res.render("Content/DashboardAdd", {
         user: req.user,
         userSchool: SchoolName,
         news: newsList,
@@ -324,11 +383,17 @@ function socketRouter(io) {
         {},
         "_id titleActivity programOwner output dateConducted remarks"
       );
+      const speaker = await SpeakerInfo.find(
+        {},
+        "_id speakerName speakerPosition speakerSchool speakerDistrict speakerBiodata speakerImage"
+      ); // Fetch user documents and select the 'userDept' field
+
       res.render("Content/TrainingsConducted", {
         user: req.user,
         userSchool: SchoolName,
         conducted: conducted,
         userSchoolList: userSchool,
+        speakerList: speaker,
       });
     } catch (err) {
       console.error(err);
@@ -535,17 +600,6 @@ function socketRouter(io) {
       res.status(500).send("Server Error");
     }
   });
-
-  const isSchoolHead = (req, res, next) => {
-    if (req.user && req.user.userType === "School Head") {
-      // User is an admin, proceed to the next middleware or route handler
-      next();
-    } else {
-      // User is not an admin, respond with an error or redirect to an unauthorized page
-      req.flash("error_msg", "Error!! Cannot Access the Site!!");
-      res.redirect("/Dashboard");
-    }
-  };
 
   router.get(
     "/AddTeachersTraining",

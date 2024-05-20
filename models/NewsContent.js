@@ -4,14 +4,12 @@ const bodyParser = require("body-parser");
 const Content = new mongoose.Schema({
   newsTitle: {
     type: String,
-    required: true,
   },
   newsContent: {
     type: String,
-    required: true,
   },
   newsImage: {
-    type: String,
+    type: [String],
   },
   userSchool: {
     type: mongoose.Schema.Types.ObjectId,

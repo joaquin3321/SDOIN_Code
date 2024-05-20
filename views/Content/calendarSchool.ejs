@@ -6,6 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar/main.min.js"></script>
 
 <!-- Bootstrap CSS -->
+<%- include('../partials/messages.ejs')%>
 
 <style>
   a {
@@ -45,7 +46,7 @@
         <h3 class="mb-4 control-label fw-bold text-muted" style="text-align: center">
           Event List
         </h3>
-        <%- include('../partials/messages.ejs')%>
+
         <thead class="table-info">
           <tr>
             <th width="1%" class="text-center">#</th>
@@ -107,8 +108,9 @@
         <h5 class="modal-title" id="createEventModalLabel">Create Event</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="createEventCloseButton"></button>
       </div>
-      <div class="modal-body">
-        <form action="/users/addSchoolEvent" method="POST">
+
+        <form action="/users/addSchoolEvent" method="POST" enctype="multipart/form-data">
+          <div class="modal-body">
           <input type="text" name="userSchool" value="<%= user.userSchool %>" hidden>
           <div class="mb-3">
             <label for="createTitle" class="form-label">Title:</label>
@@ -118,17 +120,23 @@
             <label for="createDetails" class="form-label">Details:</label>
             <textarea class="form-control" id="createDetails" name="createDetails" placeholder="Event Details" required></textarea>
           </div>
-          <div class="mb-3">
-            <label for="createStart" class="form-label">Start Date:</label>
+          <label for="viewStart" class="form-label"><b>Start/End Date:</b></label>
+          <div class="input-group mb-3">
             <input type="datetime-local" class="form-control" id="createStart" name="createStart" required />
-          </div>
-          <div class="mb-3">
-            <label for="createEnd" class="form-label">End Date:</label>
+            <span class="input-group-text">@</span>
             <input type="datetime-local" class="form-control" id="createEnd" name="createEnd" min="" max="" required />
           </div>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <div class="form-group">
+            <label class="control-label fw-bold">Event Poster (Optional):</label>
+            <input type="file" name="createPoster" class="form-control form-control" multiple accept="image/*" />
+            <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span>
+          </div>
+        </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Create Event</button>
+          </div>
         </form>
-      </div>
+
     </div>
   </div>
 </div>
@@ -144,23 +152,20 @@
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label for="viewTitle" class="form-label">Title:</label>
+          <label for="viewTitle" class="form-label"><b>Title:</b></label>
           <input type="text" class="form-control" id="viewTitle" disabled />
         </div>
         <div class="mb-3">
-          <label for="viewDetails" class="form-label">Details:</label>
+          <label for="viewDetails" class="form-label"><b>Details:</b></label>
           <textarea class="form-control" id="viewDetails" disabled></textarea>
         </div>
-        <div class="mb-3">
-          <label for="viewStart" class="form-label">Start Date:</label>
-          <div id="startInput"></div>
+        <label for="viewStart" class="form-label"><b>Start/End Date:</b></label>
+        <div class="input-group mb-3">
           <input type="text" class="form-control" id="viewStart" disabled />
-        </div>
-        <div class="mb-3">
-          <label for="viewEnd" class="form-label">End Date:</label>
-          <div id="endInput"></div>
+          <span class="input-group-text">@</span>
           <input type="text" class="form-control" id="viewEnd" disabled />
         </div>
+        <div class="text-center" id="viewPoster"></div>
       </div>
     </div>
   </div>
@@ -168,7 +173,7 @@
 
 <!-- Edit Event Modal -->
 <div class="modal fade" id="edit_event" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="staticBackdropLabel">Edit Event</h5>
@@ -248,6 +253,12 @@
         document.getElementById("viewDetails").value =
           event.extendedProps.details || "";
 
+        const posterHTML = event.extendedProps.poster ?
+          `<img src="/public/event-poster/${event.extendedProps.poster}" style="max-width: 100%; height: auto;" alt="Event Poster">` :
+          "No poster available";
+
+        document.getElementById("viewPoster").innerHTML = posterHTML;
+
         // Format the start and end dates
         const formattedStartDate = formatDate(event.start);
         const formattedEndDate = event.end ? formatDate(event.end) : "";
@@ -290,6 +301,7 @@
             start: eventData.createStart,
             end: eventData.createEnd,
             school: eventData.userSchool,
+            poster: eventData.createPoster,
             // Add other properties as needed
           };
           // Add the event to the calendar
@@ -370,13 +382,10 @@
             <label for="createDetails" class="form-label">Details:</label>
             <textarea class="form-control" id="updateDetails" placeholder="Event Details">${createDetails}</textarea>
           </div>
-          <div class="mb-3">
-            <label for="createStart" class="form-label">Start Date:</label>
-            <input type="datetime-local" class="form-control" id="updateStart" value="${createStart}" />
-          </div>
-          <div class="mb-3">
-            <label for="createEnd" class="form-label">End Date:</label>
-            <input type="datetime-local" class="form-control" id="updateEnd" value="${createEnd}"  />
+          <div class="input-group mb-3">
+            <input type="datetime-local" class="form-control" id="viewStart" value="${createStart}" />
+            <span class="input-group-text">@</span>
+            <input type="datetime-local" class="form-control" id="viewEnd"  value="${createEnd}" />
           </div>
         `;
 

@@ -134,9 +134,18 @@
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6 border-right">
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                       <label class="control-label fw-bold">Program Owner:</label>
                       <input type="text" name="programOwner" class="form-control form-control mb-3" placeholder="Program Owner" required />
+                    </div> -->
+                    <div class="form-group mb-3">
+                      <label class="control-label fw-bold">Program Owner:</label>
+                      <select class="form-select" aria-label="Default select example" name="programOwner" required>
+                        <option disabled selected hidden disabled>--Select Speaker--</option>
+                        <% speakerList.forEach(speaker => { %>
+                          <option value="<%= speaker.speakerName %>"><%= speaker.speakerName %></option>
+                        <% }); %>
+                      </select>
                     </div>
                     <div class="form-group">
                       <label class="control-label fw-bold">Title of the Activity:</label>

@@ -96,8 +96,11 @@ function socketRouter(io) {
             `User's Password Updated Successfully. User Name: <b>${updatedUser.userName}</b>`
           );
           console.log("User's Password Updated Successfully");
+        } else if (updateData.userProfile){
+          req.flash("success_msg", `Profile Updated Successfully.`);
+        } else {
+          req.flash("success_msg", `Credential Updated Successfully.`);
         }
-        req.flash("success_msg", `Credential Updated Successfully.`);
 
         // You can send a JSON response or redirect as needed
         res.status(200).json({
@@ -117,7 +120,7 @@ function socketRouter(io) {
 
   async function deleteProfile(req, res) {
     const userID = req.params.userID;
-    const attendedID = req.user.attendedID;
+
     try {
       // Retrieve the speaker information from the database
       const user = await User.findById(userID);
@@ -135,10 +138,6 @@ function socketRouter(io) {
 
       // Use set to update the speakerBiodata field
       await User.updateOne({ _id: userID }, { $set: { userProfile: "" } });
-      await TrainingAttended.updateMany(
-        { attendedID: attendedID },
-        { $set: { userProfile: "" } }
-      );
 
       return res
         .status(200)
@@ -303,40 +302,6 @@ function socketRouter(io) {
   var uploadNews = multer({
     storage: storage,
   }).array("newsImage", 15);
-
-  // router.patch("/Edit_News/:newsID", uploadNews, async (req, res) => {
-  //   try {
-  //     const newsID = req.params.newsID;
-  //     const updateData = req.body;
-  //     // Use the file name if provided
-  //     if (req.file) {
-  //       updateData.newsImage = req.file ? req.file.filename : "";
-  //     }
-
-  //     console.log(updateData);
-  //     const updatedDoc = await NewsContent.findByIdAndUpdate(
-  //       newsID,
-  //       updateData,
-  //       {
-  //         new: true,
-  //       }
-  //     );
-
-  //     if (!updatedDoc) {
-  //       res.status(404).json({ success: false, message: "Document not found" });
-  //     } else {
-  //       req.flash(
-  //         "success_msg",
-  //         `News Updated Successfully. News Title: <b>${updateData.newsTitle}</b>`
-  //       );
-  //       console.log("News Updated Successfully");
-  //       res.status(200).json({ success: true, updatedDoc });
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     res.status(500).json({ success: false, message: "Server Error" });
-  //   }
-  // });
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

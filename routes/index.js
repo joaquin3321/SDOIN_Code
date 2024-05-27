@@ -96,7 +96,7 @@ function socketRouter(io) {
         userSchool: user.userSchool ? user.userSchool.SchoolName : null,
       }));
 
-      res.render("Content/Calendar", {
+      res.render("Content/calendar", {
         user: req.user,
         userSchool: SchoolName,
         event: eventList,
@@ -134,7 +134,7 @@ function socketRouter(io) {
         userSchool: user.userSchool ? user.userSchool.SchoolName : null,
       }));
 
-      res.render("Content/CalendarSchool", {
+      res.render("Content/calendarSchool", {
         user: req.user,
         userSchool: SchoolName,
         event: eventList,

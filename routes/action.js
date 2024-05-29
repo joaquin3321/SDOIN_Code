@@ -1065,10 +1065,27 @@ function socketRouter(io) {
     }
   });
 
-  router.patch("/editEvent/:eventID", async (req, res) => {
+    var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "/SDOIN_Code/public/event-poster");
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.fieldname + "_" + Date.now() + "_" + file.originalname);
+    },
+  });
+
+  var uploadPoster = multer({
+    storage: storage,
+  }).single('createPoster');
+
+  router.patch("/editEvent/:eventID", uploadPoster, async (req, res) => {
     try {
       const eventID = req.params.eventID;
       const updateData = req.body;
+
+      if (req.file) {
+        updateData.createPoster = req.file ? req.file.filename : "";
+      }
 
       const updated = await Event.findByIdAndUpdate(eventID, updateData, {
         new: true,

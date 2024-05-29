@@ -124,7 +124,7 @@
           </div>
           <div class="form-group">
             <label class="control-label fw-bold">Event Poster (Optional):</label>
-            <input type="file" name="createPoster" class="form-control form-control" multiple accept="image/*" />
+            <input type="file" name="createPoster" class="form-control form-control" accept="image/*" />
             <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span>
           </div>
         </div>
@@ -380,9 +380,14 @@
 
           <label for="viewStart" class="form-label"><b>Start/End Date:</b></label>
           <div class="input-group mb-3">
-            <input type="datetime-local" class="form-control" id="viewStart" value="${createStart}" />
+            <input type="datetime-local" class="form-control" id="updateStart" value="${createStart}" />
             <span class="input-group-text">@</span>
-            <input type="datetime-local" class="form-control" id="viewEnd"  value="${createEnd}" />
+            <input type="datetime-local" class="form-control" id="updateEnd"  value="${createEnd}" />
+          </div>
+          <div class="form-group">
+            <label class="control-label fw-bold">Event Poster (Optional):</label>
+            <input type="file" id="updatePoster" class="form-control form-control" accept="image/*" />
+            <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span>
           </div>
         `;
 
@@ -407,11 +412,17 @@
     const updateStart = document.getElementById("updateStart").value;
     const updateEnd = document.getElementById("updateEnd").value;
 
-    const updateData = {
-      createTitle: updateTitle,
-      createDetails: updateDetails,
-      createStart: updateStart,
-      createEnd: updateEnd
+    const updatePoster = document.getElementById("updatePoster");
+    const posterUpdate = updatePoster.files[0];
+
+    // Create a FormData object
+    const updateData = new FormData();
+    updateData.append('createTitle', updateTitle);
+    updateData.append('createDetails', updateDetails);
+    updateData.append('createStart', updateStart);
+    updateData.append('createEnd', updateEnd);
+    if (posterUpdate) {
+      updateData.append('createPoster', posterUpdate);
     }
     Swal.fire({
         title: "Are you sure you want to update this event?",
@@ -428,10 +439,7 @@
           try {
             const response = await fetch(`/action/editEvent/${eventID}`, {
               method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(updateData), // Use FormData directly instead of JSON.stringify
+              body: updateData, // Use FormData directly instead of JSON.stringify
             });
 
             if (!response.ok) {

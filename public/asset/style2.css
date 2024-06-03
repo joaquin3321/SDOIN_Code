@@ -151,6 +151,9 @@ header .image-text .profession {
   font-size: 16px;
   margin-top: -2px;
   display: block;
+  white-space: normal; /* Allows the text to wrap to the next line */
+  overflow-wrap: break-word; /* Breaks the word in case of overflow */
+  word-wrap: break-word; /* Older browsers support */
 }
 
 .sidebar header .image {

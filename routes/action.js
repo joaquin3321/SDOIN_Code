@@ -873,9 +873,9 @@ function socketRouter(io) {
       } else {
         req.flash(
           "success_msg",
-          "Teacher Conducted Training Deleted Successfully"
+          "Deleted Successfully"
         );
-        console.log("Teacher Conducted Training Deleted Successfully");
+        console.log("Deleted Successfully");
 
         // Send a success response to the client
         res.status(200).json({ success: true });

@@ -234,6 +234,9 @@
   </div>
 <% }else { %>
   <div class="speaker_list "></div>
+  <% if (!speaker || speaker.length === 0) { %>
+    <div class="text-center fw-bold" style="font-size: 100px;">NO SPEAKER AVAILABLE</div>
+  <% } %>
 <% } %>
 
 <!-- Create Speaker Modal -->

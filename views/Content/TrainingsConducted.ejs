@@ -94,12 +94,12 @@
                 </a>
               </div>
               <% if( user.userType == "Admin"){ %>
-              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit Conducted">
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Edit">
                 <a class="btn btn-outline-success view_conducted" data-bs-toggle="modal" data-bs-target="#edit_conducted" data-id="<%= conducted._id %>">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </a>
               </div>
-              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete Conducted">
+              <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Delete">
                 <a class="btn btn-outline-danger view_conducted" data-bs-toggle="modal" data-bs-target="#delete_conducted" data-id="<%= conducted._id %>">
                   <i class="fa-solid fa-trash"></i>
                 </a>
@@ -134,11 +134,11 @@
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6 border-right">
-                    <!-- <div class="form-group">
+                    <div class="form-group">
                       <label class="control-label fw-bold">Program Owner:</label>
                       <input type="text" name="programOwner" class="form-control form-control mb-3" placeholder="Program Owner" required />
-                    </div> -->
-                    <div class="form-group mb-3">
+                    </div>
+                    <!-- <div class="form-group mb-3">
                       <label class="control-label fw-bold">Program Owner:</label>
                       <select class="form-select" aria-label="Default select example" name="programOwner" required>
                         <option disabled selected hidden disabled>--Select Speaker--</option>
@@ -146,7 +146,7 @@
                           <option value="<%= speaker.speakerName %>"><%= speaker.speakerName %></option>
                         <% }); %>
                       </select>
-                    </div>
+                    </div> -->
                     <div class="form-group">
                       <label class="control-label fw-bold">Title of the Activity:</label>
                       <input type="text" name="titleActivity" class="form-control form-control mb-3" placeholder="Title of the Activity" required />

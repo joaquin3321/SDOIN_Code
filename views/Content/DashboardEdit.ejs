@@ -47,7 +47,8 @@
           <span class="mb-3" style="font-size: small; font-weight: bold; color: red;">*It only accept image</span><br>
 
           <% news.newsImage.forEach(function(image) { %>
-          <img src="/public/news/<%= image %>" width="100" class="img-thumbnail mt-1" alt="">
+
+            <a href="/public/news/<%= image %>" target="_blank"><img src="/public/news/<%= image %>" width="100" class="img-thumbnail mt-1" alt=""></a>
           <% }); %>
 
         </div>
